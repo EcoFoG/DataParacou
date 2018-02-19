@@ -47,8 +47,20 @@ class Main extends CI_Controller {
 
                 'table_close'         => '</table>'
             );
+            $paracouDB = $this->load->database('paracou', TRUE);
+            $plots = $paracouDB->query('select "Plot" from taparacou group by "Plot" order by "Plot"')->result_array();
+            $years = $paracouDB->query('select "CensusYear" from taparacou group by "CensusYear" order by "CensusYear"')->result_array();
+            $vernnames = $paracouDB->query('select "VernName" from taparacou group by "VernName" order by "VernName"')->result_array();
+            $families = $paracouDB->query('select "Family" from taparacou group by "Family" order by "Family"')->result_array();
+            $genuses = $paracouDB->query('select "Genus" from taparacou group by "Genus" order by "Genus"')->result_array();
+            $taxons = $paracouDB->query('select "idTaxon" from taparacou group by "idTaxon" order by "idTaxon"')->result_array();
+            $data['plots'] = $plots;
+            $data['years'] = $years;
+            $data['vernnames'] = $vernnames;
+            $data['families'] = $families;
+            $data['genuses'] = $genuses;
             $this->load->view('header');
-            $this->load->view('index');
+            $this->load->view('index', $data);
             $this->load->view('footer');
 	}
 
