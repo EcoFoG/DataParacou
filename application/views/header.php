@@ -11,14 +11,16 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="apple-touch-icon" href="apple-touch-icon.png">
         
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css"/>
+        <link rel="stylesheet" href="/public/css/bootstrap.min.css">
         <link rel="stylesheet" href="/public/css/main.css">
-        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.5/css/select2.min.css"/>
+        <link rel="stylesheet" type="text/css" href="/public/css/select2.min.css">
+        <link rel="stylesheet" href="/public/css/jquery-ui.css">
         
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.5/js/select2.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+        <script type="text/javascript" src="/public/css/pdfmake.min.js"></script>
+        <script type="text/javascript" src="/public/css/jquery.min.js"></script>
+        <script type="text/javascript" src="/public/css/select2.js"></script>
+        <script type="text/javascript" src="/public/css/vfs_fonts.js"></script>
+        <script type="text/javascript" src="/public/css/jquery-ui.js"></script>
     </head>
     <body>
     <!--[if lt IE 8]>

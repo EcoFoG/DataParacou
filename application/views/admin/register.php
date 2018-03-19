@@ -1,11 +1,10 @@
 <div class="container">
     <div class="row">
         <div class="col-lg-4 col-lg-offset-4">
-            <h2>Hello There</h2>
             <h5>Please enter the required information below.</h5>
         <?php
             $fattr = array('class' => 'form-signin');
-            echo form_open('/main/register', $fattr); ?>
+            echo form_open('/admin/add', $fattr); ?>
             <div class="form-group">
               <?php echo form_input(array('name'=>'firstname', 'id'=> 'firstname', 'placeholder'=>'First Name', 'class'=>'form-control', 'value' => set_value('firstname'))); ?>
               <?php echo form_error('firstname');?>

@@ -19,92 +19,138 @@ class Main extends CI_Controller {
         $this->load->library('email');
         $this->load->library('session');
         $this->load->library('table');
+        $this->load->dbutil();
 
     }
 
 	public function index()
 	{
+            if($this->input->post("admin")){
+                redirect(base_url().'admin');
+            }
+            if($this->input->post("disconnect")){
+                redirect(base_url().'main/logout/');
+            }
             if(empty($this->session->userdata['email'])){
                 redirect(base_url().'main/login/');
             }
-            $tmpl = array (
-                'table_open'          => '<table class="table table-striped table-bordered" id="guyafor_datatable">',
-
-                'heading_row_start'   => '<tr>',
-                'heading_row_end'     => '</tr>',
-                'heading_cell_start'  => '<th>',
-                'heading_cell_end'    => '</th>',
-
-                'row_start'           => '<tr>',
-                'row_end'             => '</tr>',
-                'cell_start'          => '<td>',
-                'cell_end'            => '</td>',
-
-                'row_alt_start'       => '<tr>',
-                'row_alt_end'         => '</tr>',
-                'cell_alt_start'      => '<td>',
-                'cell_alt_end'        => '</td>',
-
-                'table_close'         => '</table>'
-            );
+            
+            if (!isset($get["page"])) {
+                $offset = 1;
+            } else {
+                $offset = $get["page"];
+            }
+            
+            $data['role'] = $this->session->userdata('role');
+            
+            $get = $this->input->get(NULL, FALSE);
+            
             $paracouDB = $this->load->database('paracou', TRUE);
-            $plots = $paracouDB->query('select "Plot" from taparacou group by "Plot" order by "Plot"')->result_array();
-            $years = $paracouDB->query('select "CensusYear" from taparacou group by "CensusYear" order by "CensusYear"')->result_array();
-            $vernnames = $paracouDB->query('select "VernName" from taparacou group by "VernName" order by "VernName"')->result_array();
-            $families = $paracouDB->query('select "Family" from taparacou group by "Family" order by "Family"')->result_array();
-            $genuses = $paracouDB->query('select "Genus" from taparacou group by "Genus" order by "Genus"')->result_array();
-            $taxons = $paracouDB->query('select "idTaxon" from taparacou group by "idTaxon" order by "idTaxon"')->result_array();
-            $data['plots'] = $plots;
-            $data['years'] = $years;
-            $data['vernnames'] = $vernnames;
-            $data['families'] = $families;
-            $data['genuses'] = $genuses;
+            
+            /* Configuration of the table in application/config/datatable.php */
+            $this->config->load("datatable");
+            $tmpl = $this->config->item("table_template");
+            $data['headers'] = $this->config->item("headers");
+            $filters = $this->config->item("filters");
+            $columns = $this->config->item("columns");
+            
+            $this->table->set_template($tmpl);
+            
+            foreach ($filters as $value) {
+                $data['F'.$value] = $paracouDB->query("select \"$value\" from taparacou group by \"$value\" order by \"$value\"")->result_array();
+            }
+            
+            $data['filters'] = $filters;
+            $filters[] = "SubPlot";
+            
+            if(isset($get['circMax'])){
+                $circMax = $this->input->get('circMax');
+            } else {
+                $circMax = 150;
+            }
+            if(isset($get['circMin'])){
+                $circMin = $this->input->get('circMin');
+            } else {
+                $circMin = 10;
+            }
+            
+            $min_tmp = $paracouDB->query("SELECT min(\"Circ\") FROM taparacou")->row();
+            $data['circDBMin'] = $min_tmp->min;
+            $max_tmp = $paracouDB->query("SELECT max(\"Circ\") FROM taparacou")->row();
+            $data['circDBMax'] = $max_tmp->max;
+            
+            if (isset($get['limit'])) {
+                $l_tmp= $get['limit'];
+                $limit = " LIMIT $l_tmp OFFSET $offset";
+            } else {
+                $limit = " LIMIT 50 OFFSET $offset";
+            }
+            
+            $flag = count($filters);
+            foreach($filters as $value){
+               $flag = (isset($get[$value])) ? $flag-1: $flag;
+            }
+            $like = (count($filters) > $flag) ? $this->like($filters,$get) : '';
+            
+            if (isset($get["csv"])) {
+                $this->load->helper('download');
+                $this->load->helper('date');
+                $time = time();
+                $query =   "SELECT \"".implode("\", \"", $this->pluck($columns, 'db'))."\" "
+                . "FROM taparacou "
+                . "WHERE \"Circ\" BETWEEN $circMin AND $circMax "
+                . "$like "
+                . "ORDER BY \"TreeFieldNum\",\"CensusYear\"";
+                $name = "Paracou".mdate("%d%m%Y",$time).".csv";
+                $csv = $this->dbutil->csv_from_result($paracouDB->query($query));
+                force_download($name, $csv);
+                
+                
+            }
+            
+            $query =   "SELECT \"".implode("\", \"", $this->pluck($columns, 'db'))."\" "
+              . "FROM taparacou "
+              . "WHERE \"Circ\" BETWEEN $circMin AND $circMax "
+              . "$like "
+              . "ORDER BY \"TreeFieldNum\",\"CensusYear\""
+              . "$limit" ;
+            $data['table'] = $paracouDB->query($query)->result_array();
             $this->load->view('header');
             $this->load->view('index', $data);
             $this->load->view('footer');
 	}
-
-
-        public function register()
+        
+        protected function like($filters, $get)
         {
-            $this->form_validation->set_rules('firstname', 'First Name', 'required');
-            $this->form_validation->set_rules('lastname', 'Last Name', 'required');
-            $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
-
-            if ($this->form_validation->run() == FALSE) {
-                $this->load->view('header');
-                $this->load->view('register');
-                $this->load->view('footer');
-            }else{
-                if($this->user_model->isDuplicate($this->input->post('email'))){
-                    $this->session->set_flashdata('flash_message', 'User email already exists');
-                    redirect(base_url().'main/login');
-                }else{
-
-                    $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
-                    $id = $this->user_model->insertUser($clean);
-                    $token = $this->user_model->insertToken($id);
-
-                    $qstring = $this->base64url_encode($token);
-                    $url = base_url() . 'main/complete/token/' . $qstring;
-                    $link = '<a href="' . $url . '">' . $url . '</a>';
-
-                    $message = '';
-                    $message .= '<strong>You have signed up with our website</strong><br>';
-                    $message .= '<strong>Please click:</strong> ' . $link;
-
-                    echo $message; //send this in email
-                    exit;
-
-
-                };
+ 
+            foreach($filters as $key => $value) {
+                if(isset($get[$value])){
+                    $str = implode(" OR ", $get[$value]);
+                } else {
+                    $str='';
+                }
+                if ($str != '') {
+                    $binding = $str;
+                    $like[$key] = "CAST(\"".$value."\" AS TEXT) LIKE '".$binding."'";
+                }
             }
+            $like = implode(" AND ",$like);
+            $like = " AND ".$like;
+            return $like;
         }
-
 
         protected function _islocal(){
             return strpos($_SERVER['HTTP_HOST'], 'local');
         }
+        
+        private function pluck( $a, $prop )
+	{
+		$out = array();
+		for ( $i=0, $len=count($a) ; $i<$len ; $i++ ) {
+			$out[] = $a[$i][$prop];
+		}
+		return $out;
+	} 
 
         public function complete()
         {
@@ -142,9 +188,11 @@ class Main extends CI_Controller {
                 $cleanPost['password'] = $hashed;
                 unset($cleanPost['passconf']);
                 $userInfo = $this->user_model->updateUserInfo($cleanPost);
+                
+                $hotline = print_r($cleanpost);
 
                 if(!$userInfo){
-                    $this->session->set_flashdata('flash_message', 'There was a problem updating your record');
+                    $this->session->set_flashdata('flash_message', "There was a problem updating your record");
                     redirect(base_url().'main/login');
                 }
 
@@ -248,7 +296,7 @@ class Main extends CI_Controller {
             $data = array(
                 'firstName'=> $user_info->first_name,
                 'email'=>$user_info->email,
-//                'user_id'=>$user_info->id,
+                'user_id'=>$user_info->id,
                 'token'=>$this->base64url_encode($token)
             );
 
@@ -263,12 +311,15 @@ class Main extends CI_Controller {
 
                 $this->load->library('password');
                 $post = $this->input->post(NULL, TRUE);
+                
                 $cleanPost = $this->security->xss_clean($post);
+                
+                $hashed = $this->password->create_hash($cleanPost['password']);
                 $cleanPost['password'] = $hashed;
                 $cleanPost['user_id'] = $user_info->id;
                 unset($cleanPost['passconf']);
                 if(!$this->user_model->updatePassword($cleanPost)){
-                    $this->session->set_flashdata('flash_message', 'There was a problem updating your password');
+                    $this->session->set_flashdata('flash_message', "There was a problem updating your password $test");
                 }else{
                     $this->session->set_flashdata('flash_message', 'Your password has been updated. You may now login');
                 }

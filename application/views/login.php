@@ -1,6 +1,6 @@
 <div class="container">
     <div class="row">
-        <div class="col-lg-4 col-lg-offset-4">
+        <div class="col-lg-4 offset-lg-4">
                 <h2>Please login</h2>
                 <?php $fattr = array('class' => 'form-signin');
                      echo form_open(base_url().'main/login/', $fattr); ?>
@@ -24,7 +24,6 @@
                 </div>
                 <?php echo form_submit(array('value'=>'Let me in!', 'class'=>'btn btn-lg btn-primary btn-block')); ?>
                 <?php echo form_close(); ?>
-                <p>Don't have an account? Click to <a href="<?php echo base_url();?>main/register">Register</a></p>
                 <p>Click <a href="<?php echo base_url();?>main/forgot">here</a> if you forgot your password.</p>
             </div>
     </div>
