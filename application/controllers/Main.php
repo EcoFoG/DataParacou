@@ -19,6 +19,7 @@ class Main extends CI_Controller {
         $this->load->library('email');
         $this->load->library('session');
         $this->load->library('table');
+        $this->load->library('pagination');
         $this->load->dbutil();
 
     }
@@ -44,20 +45,33 @@ class Main extends CI_Controller {
             $data['role'] = $this->session->userdata('role');
             
             $get = $this->input->get(NULL, FALSE);
+            $data["get"] = $get;
             
             $paracouDB = $this->load->database('paracou', TRUE);
             
             /* Configuration of the table in application/config/datatable.php */
             $this->config->load("datatable");
+            $this->config->load("tooltips");
             $tmpl = $this->config->item("table_template");
             $data['headers'] = $this->config->item("headers");
+            $data['tip_CodeMeas'] = $this->config->item("tip_CodeMeas");
+            $data['tip_CodeAlive'] = $this->config->item("tip_CodeAlive");
             $filters = $this->config->item("filters");
             $columns = $this->config->item("columns");
+            
+            $config['total_rows'] = 90;
+            $config['per_page'] = 25;
+            //Initialisation pagination
+            $this->pagination->initialize($config);
             
             $this->table->set_template($tmpl);
             
             foreach ($filters as $value) {
-                $data['F'.$value] = $paracouDB->query("select \"$value\" from taparacou group by \"$value\" order by \"$value\"")->result_array();
+                $temp = $paracouDB->query("select \"$value\" from taparacou group by \"$value\" order by \"$value\"")->result_array();
+                foreach ($temp as $key2=>$value2) {
+                    $temp[$key2] = $temp[$key2][$value];
+                }
+                $data['F'.$value] = $temp;
             }
             
             $data['filters'] = $filters;

@@ -6,7 +6,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title></title>
+        <title>Paracou-Ex</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -16,11 +16,14 @@
         <link rel="stylesheet" type="text/css" href="/public/css/select2.min.css">
         <link rel="stylesheet" href="/public/css/jquery-ui.css">
         
-        <script type="text/javascript" src="/public/css/pdfmake.min.js"></script>
-        <script type="text/javascript" src="/public/css/jquery.min.js"></script>
-        <script type="text/javascript" src="/public/css/select2.js"></script>
-        <script type="text/javascript" src="/public/css/vfs_fonts.js"></script>
-        <script type="text/javascript" src="/public/css/jquery-ui.js"></script>
+        <script type="text/javascript" src="/public/js/popper.min.js"></script>
+        <script type="text/javascript" src="/public/js/bootstrap.bundle.min.js"></script>
+        <script type="text/javascript" src="/public/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="/public/js/pdfmake.min.js"></script>
+        <script type="text/javascript" src="/public/js/jquery.min.js"></script>
+        <script type="text/javascript" src="/public/js/select2.js"></script>
+        <script type="text/javascript" src="/public/js/vfs_fonts.js"></script>
+        <script type="text/javascript" src="/public/js/jquery-ui.js"></script>
     </head>
     <body>
     <!--[if lt IE 8]>
