@@ -14,6 +14,7 @@ class Admin extends CI_Controller {
             $this->load->helper('form');
             $this->load->helper('url');
             $this->load->library('email');
+            $this->load->library('PeEmail');
             $this->load->library('session');
             $this->load->library('table');
             $this->load->dbutil();
@@ -56,16 +57,22 @@ class Admin extends CI_Controller {
                     $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
                     $id = $this->user_model->insertUser($clean);
                     $token = $this->user_model->insertToken($id);
+                    $dest = $this->input->post('email');
 
                     $qstring = $this->base64url_encode($token);
                     $url = base_url() . 'main/complete/token/' . $qstring;
                     $link = '<a href="' . $url . '">' . $url . '</a>';
 
                     $panel1 = '<p>En attendant que le serveur mail soit mis en place, il faut envoyer manuellement ce message par e-mail : </p> <div class="card">';
-
                     $message = '';
                     $message .= "<strong>You have been invited to Paracou-Ex</strong><br>";
                     $message .= '<strong>Please click:</strong> ' . $link;
+                    
+                    if ($catch = $this->peemail->sendMail($dest,"Invitation Paracou-Ex",$message)) {
+                        echo "E-mail sent at $dest";
+                    } else {
+                        echo $catch;
+                    }
 
                     $panel2 = '</div>';
 

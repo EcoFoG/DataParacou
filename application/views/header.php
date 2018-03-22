@@ -16,14 +16,13 @@
         <link rel="stylesheet" type="text/css" href="/public/css/select2.min.css">
         <link rel="stylesheet" href="/public/css/jquery-ui.css">
         
+        <script type="text/javascript" src="/public/js/jquery.min.js"></script>
+        <script type="text/javascript" src="/public/js/jquery-ui.js"></script>
         <script type="text/javascript" src="/public/js/popper.min.js"></script>
-        <script type="text/javascript" src="/public/js/bootstrap.bundle.min.js"></script>
         <script type="text/javascript" src="/public/js/bootstrap.min.js"></script>
         <script type="text/javascript" src="/public/js/pdfmake.min.js"></script>
-        <script type="text/javascript" src="/public/js/jquery.min.js"></script>
         <script type="text/javascript" src="/public/js/select2.js"></script>
         <script type="text/javascript" src="/public/js/vfs_fonts.js"></script>
-        <script type="text/javascript" src="/public/js/jquery-ui.js"></script>
     </head>
     <body>
     <!--[if lt IE 8]>

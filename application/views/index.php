@@ -12,10 +12,11 @@
     }
 ?>
 <script>
-    $(document).ready(function() {
-        $("th:contains(Measure code)").attr("data-toggle","tooltip").attr("data-placement","bottom").attr("data-html","true");
-        $("th:contains(Measure code)").attr("title","<?php foreach($tip_CodeMeas as $value){echo "$value <br>";} ?>");
-        $('[data-toggle="tooltip"]').tooltip();
+    $(document).ready(function() {   
+        $("th:contains(Measure code)").attr("data-original-title","<?php foreach($tip_CodeMeas as $value){echo "$value<br>";} ?>").attr("data-placement","bottom").attr("data-html","true").tooltip();
+        $("th:contains(Status)").attr("data-original-title","<?php foreach($tip_CodeAlive as $value){echo "$value<br>";} ?>").attr("data-placement","bottom").attr("data-html","true").tooltip();
+        $("th:contains(Status)").append('<div class="annoted-header">');
+        $("th:contains(Measure code)").append('<div class="annoted-header">');
         $('.multiple').select2({
             closeOnSelect: false
         });
@@ -58,7 +59,7 @@
                 <form method="get">
                     <div class="form-group">
                         <div class="row">
-                            <div class="col-lg col-xl">  
+                            <div class="col-lg-4 col-xl-4 col-sm-12 col-md-12">  
                             <label>Circumference</label><br>
                             <div class="row">
                                 <div class="col">
@@ -74,7 +75,7 @@
                             <div id="slider"></div>
                             <br>
                             <label for="<?php echo $filters[1]?>[]">Status</label>
-                            <select class="multiple form-control" name="<?php echo $filters[1]?>[]" multiple="multiple">
+                            <select class="multiple form-control" name="<?php echo $filters[1]?>[]" multiple="multiple" style="width:100%;">
                                 <?php
                                         if (isset($get["CodeAlive"])) {
                                             $codeAliveInter = array_intersect($FCodeAlive,$get["CodeAlive"]);
@@ -89,9 +90,9 @@
                                     } ?>                    
                             </select>
                             </div>
-                            <div class="col-md col-xl">
+                            <div class="col-lg-4 col-xl-4 col-sm-12 col-md-12">  
                                 <label for="<?php echo $filters[0]?>[]">Plots </label>
-                                <select class="multiple form-control" name="<?php echo $filters[0]?>[]" multiple="multiple">
+                                <select class="multiple form-control" name="<?php echo $filters[0]?>[]" multiple="multiple" style="width:100%;">
                                     <?php
                                          if (isset($get["CodeAlive"])) {
                                             $PlotInter = array_intersect($FPlot,$get["Plot"]);
@@ -105,7 +106,7 @@
                                         } ?>
                                 </select>
                                 <label for="SubPlot[]">Subplot </label>
-                                <select class="multiple form-control" name="SubPlot[]" multiple="multiple">
+                                <select class="multiple form-control" name="SubPlot[]" multiple="multiple" style="width:100%;">
                                     <?php
                                         for($i = 1 ; $i <= 4; $i++){
                                         if (in_array($i, $get["SubPlot"])) {
@@ -118,7 +119,7 @@
                                     ?>
                                 </select>
                                 <label for="<?php echo $filters[2]?>[]">Census year</label>
-                                <select class="multiple form-control" name="<?php echo $filters[2]?>[]" multiple="multiple">
+                                <select class="multiple form-control" name="<?php echo $filters[2]?>[]" multiple="multiple" style="width:100%;">
                                     <?php
                                          if (isset($get["CensusYear"])) {
                                             $YearInter = array_intersect($FCensusYear,$get["CensusYear"]);
@@ -132,9 +133,9 @@
                                         }?>
                                 </select>
                             </div>
-                            <div class="col-md col-xl">
+                            <div class="col-md-4 col-xl-4 col-sm-12 col-md-12">
                                 <label for="<?php echo $filters[3]?>[]">Vernacular name </label>
-                                <select class="multiple form-control" name="<?php echo $filters[3]?>[]" multiple="multiple">
+                                <select class="multiple form-control" name="<?php echo $filters[3]?>[]" multiple="multiple" style="width:100%;">
                                     <?php
                                          if (isset($get["VernName"])) {
                                             $VernInter = array_intersect($FVernName,$get["VernName"]);
@@ -148,7 +149,7 @@
                                         }?>
                                 </select>
                                 <label for="<?php echo $filters[4]?>[]">Family </label>
-                                <select class="multiple form-control" name="<?php echo $filters[4]?>[]" multiple="multiple">
+                                <select class="multiple form-control" name="<?php echo $filters[4]?>[]" multiple="multiple" style="width:100%;">
                                     <?php
                                          if (isset($get["Family"])) {
                                             $FamilyInter = array_intersect($FFamily,$get["Family"]);
@@ -162,7 +163,7 @@
                                         }?>
                                 </select>
                                 <label for="<?php echo $filters[6]?>[]">Genus </label>
-                                <select class="multiple form-control" name="<?php echo $filters[6]?>[]" multiple="multiple">
+                                <select class="multiple form-control" name="<?php echo $filters[6]?>[]" multiple="multiple" style="width:100%;">
                                     <?php
                                          if (isset($get["Genus"])) {
                                             $GenusInter = array_intersect($FGenus,$get["Genus"]);
@@ -177,7 +178,7 @@
                                 </select>
                                 <br>
                                 <label for="<?php echo $filters[5]?>[]">Species </label>
-                                <select class="multiple form-control" name="<?php echo $filters[5]?>[]" multiple="multiple">
+                                <select class="multiple form-control" name="<?php echo $filters[5]?>[]" multiple="multiple" style="width:100%;">
                                     <?php
                                          if (isset($get["Species"])) {
                                             $SpeciesInter = array_intersect($FSpecies,$get["Species"]);
@@ -193,8 +194,10 @@
                                 <br>
                             </div>
                         </div>
-                        <input class="btn" type="submit" name="apply" value="Apply">
-                        <input class="btn" type="submit" name="csv" value="Export to CSV">
+                        <div class="row align-item-end">
+                            <input class="btn" type="submit" name="apply" value="Apply">
+                            <input class="btn" type="submit" name="csv" value="Export to CSV">
+                        </div>
                     </div>
                 </div>
             </form>
