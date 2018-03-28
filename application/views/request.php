@@ -1,7 +1,8 @@
 <script>
     $(document).ready(function() {   
         $('.multiple').select2({
-            closeOnSelect: false
+            closeOnSelect: false,
+            placeholder: "All"
         });
         $('#timeline').daterangepicker({
             locale: {
@@ -16,8 +17,8 @@
         
     });
 </script>
-<div class="container">
-    <div class="row">
+<div class="container mx-auto my-3">
+    <div class="row justify-content-center">
         <div class="col-8 justify-content-center">
                 <h2>Please enter the required information below.</h2>
                 <?php $fattr = array('class' => 'form');
@@ -51,13 +52,22 @@
                   <?php echo form_error('address') ?>
                 </div>
                 <div class="form-group">
-                    <?php echo form_label('Full name');?>
+                    <?php echo form_label('First name');?>
                   <?php echo form_input(array(
-                      'name'=>'name',
-                      'id'=> 'name',
+                      'name'=>'firstname',
+                      'id'=> 'firstname',
                       'class'=>'form-control',
-                      'value'=> set_value('name'))); ?>
-                  <?php echo form_error('name') ?>
+                      'value'=> set_value('firstname'))); ?>
+                  <?php echo form_error('firstname') ?>
+                </div>
+                 <div class="form-group">
+                    <?php echo form_label('Last name');?>
+                  <?php echo form_input(array(
+                      'name'=>'lastname',
+                      'id'=> 'lastname',
+                      'class'=>'form-control',
+                      'value'=> set_value('lastname'))); ?>
+                  <?php echo form_error('lastname') ?>
                 </div>
                 <div class="form-group">
                     <?php echo form_label('Title of the proposed research');?>
@@ -121,6 +131,7 @@
                   <?php echo form_input(array(
                       'name'=>'timeline',
                       'id'=> 'timeline',
+                      'placeholder'=> 'Day of expiration',
                       'class'=>'form-control',
                       'value'=> set_value('timeline'))); ?>
                   <?php echo form_error('timeline') ?>

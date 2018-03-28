@@ -14,6 +14,7 @@
         <link rel="stylesheet" type="text/css" href="/public/css/bootstrap.min.css" crossorigin="anonymous">
         <link rel="stylesheet" type="text/css" href="/public/css/dataTables.bootstrap4.min.css" crossorigin="anonymous">
         <link rel="stylesheet" type="text/css" href="/public/css/daterangepicker.css" />
+        <link rel="stylesheet" type="text/css" href="/public/fontawesome/css/fontawesome-all.css" />
         <link rel="stylesheet" type="text/css" href="/public/css/main.css">
         
         <script type="text/javascript" src="/public/js/jquery.min.js"></script>
@@ -40,3 +41,10 @@
         </script>
     </head>
 <body>
+    <?php if(!empty($flash_message)){
+                $html = '<div class="bg-warning w-100 flash-message">';
+                $html .= $flash_message;
+                $html .= '</div>';
+                echo $html;
+            }
+    ?>

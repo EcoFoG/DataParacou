@@ -26,40 +26,33 @@ class Main extends CI_Controller {
         $this->load->dbutil();
 
     }
-
-	public function index()
-	{
-            if($this->input->post("admin")){
-                redirect(base_url().'admin');
-            }
-            if($this->input->post("disconnect")){
-                redirect(base_url().'main/logout/');
-            }
-            if(empty($this->session->userdata['email']) || ((isset($this->session->userdata['expires'])) && (time() > strtotime(str_replace('/', '-', $this->session->userdata['expires']))))){
-                redirect(base_url().'main/login/');
-            }
-            
-            $data['role'] = $this->session->userdata('role');
-            
-            #### get GET method variables ####
-            $get = $this->input->get(NULL, FALSE);
-            $data["get"] = $get;
-            
-            $paracouDB = $this->load->database('paracou', TRUE);
-            
-            /* Configuration of the data table in application/config/datatable.php */
-            $this->config->load("datatable");
-            /* Configuration of the tooltips in application/config/tooltips.php */
-            $this->config->load("tooltips");
-            $tmpl = $this->config->item("table_template");
-            $data['headers'] = $this->config->item("headers");
-            $data['tip_CodeMeas'] = $this->config->item("tip_CodeMeas");
-            $data['tip_CodeAlive'] = $this->config->item("tip_CodeAlive");
-            $filters = $this->config->item("filters");
-            $columns = $this->config->item("columns");
-            $this->table->set_template($tmpl); // Apply template to the generated table
-            
-            #### Get levels of filters in the databases ####
+    protected function checkLogin(){
+        if($this->input->post("admin")){
+            redirect(base_url().'admin');
+        }
+        if($this->input->post("disconnect")){
+            redirect(base_url().'main/logout/');
+        }
+        if(empty($this->session->userdata['email']) || ((isset($this->session->userdata['expires'])) && (time() > strtotime(str_replace('/', '-', $this->session->userdata['expires']))))){
+            redirect(base_url().'main/login/');
+        }
+        return $this->session->userdata('role');
+    }
+    
+    private function configTable(&$data, &$filters, &$columns){
+        /* Configuration of the data table in application/config/datatable.php */
+        $this->config->load("datatable");
+        /* Configuration of the tooltips in application/config/tooltips.php */
+        $this->config->load("tooltips");
+        $tmpl = $this->config->item("table_template");
+        $data['headers'] = $this->config->item("headers");
+        $data['tip_CodeMeas'] = $this->config->item("tip_CodeMeas");
+        $data['tip_CodeAlive'] = $this->config->item("tip_CodeAlive");
+        $filters = $this->config->item("filters");
+        $columns = $this->config->item("columns");
+        $this->table->set_template($tmpl); // Apply template to the generated table
+    }
+    private function getFilters(&$data, $filters, $paracouDB){
             foreach ($filters as $value) {
                 $temp = $paracouDB->query("select \"$value\" from taparacou group by \"$value\" order by \"$value\"")->result_array();
                 foreach ($temp as $key2=>$value2) {
@@ -69,27 +62,53 @@ class Main extends CI_Controller {
             }
             $data['filters'] = $filters;
             $filters[] = "SubPlot";
-            
-            #### Set default circMax and circMin ####
-            if(isset($get['circMax'])){
-                $circMax = $this->input->get('circMax');
-            } else {
-                $circMax = 150;
-            }
-            if(isset($get['circMin'])){
-                $circMin = $this->input->get('circMin');
-            } else {
-                $circMin = 10;
-            }
+    }
+    private function getCircBoundaries(&$data, $paracouDB){
             $min_tmp = $paracouDB->query("SELECT min(\"Circ\") FROM taparacou")->row();
             $data['circDBMin'] = $min_tmp->min;
             $max_tmp = $paracouDB->query("SELECT max(\"Circ\") FROM taparacou")->row();
             $data['circDBMax'] = $max_tmp->max;
+    }
+    private function limit($offset, $n_limit){
+        $limit = " LIMIT $n_limit OFFSET $offset";
+        return $limit;
+    }
+    private function paginate(&$data, $total_rows, $n_limit){
+        $this->config->load("pagination");
+        $conf_pagination = $this->config->item("pagination");
+        $conf_pagination['base_url'] = base_url()."main/" ;
+        $conf_pagination['total_rows'] = $total_rows;
+        $conf_pagination['per_page'] = $n_limit;
+        $this->pagination->initialize($conf_pagination);
+        $data["pagination_links"] = $this->pagination->create_links();
+    }
+    
+    public function index()
+	{
+            $data['role'] = $this->checkLogin();
+            
+            #### get GET method variables ####
+            $get = $this->input->get(NULL, FALSE);
+            $data["get"] = $get;
+            
+            $paracouDB = $this->load->database('paracou', TRUE);
+            $filters = $columns = array();
+            $this->configTable($data, $filters, $columns);
+            
+            #### Get levels of filters in the databases ####
+            $this->getFilters($data, $filters, $paracouDB);
+            
+            #### Set default circMax and circMin ####
+            $circMax = isset($get['circMax']) ? $get['circMax'] : 150;
+            $circMin = isset($get['circMin']) ? $get['circMin'] : 10;
+            
+            #### Get Circ boundaries in the database ####
+            $this->getCircBoundaries($data,$paracouDB);
             
             #### Create limit string for the query ####
             $offset = isset($get["page"]) ? $get["page"] : 1;
             $n_limit = isset($get['limit']) ? $get['limit'] : 50;
-            $limit = " LIMIT $n_limit OFFSET $offset";
+            $limit = $this->limit($offset,$n_limit);
             
             #### Create like string for the query ####
             $flag = count($filters);
@@ -119,13 +138,7 @@ class Main extends CI_Controller {
             $data['table'] = $paracouDB->query($query)->result_array();
             
             #### Pagination ####
-            $this->config->load("pagination");
-            $conf_pagination = $this->config->item("pagination");
-            $conf_pagination['base_url'] = base_url()."main/" ;
-            $conf_pagination['total_rows'] = $total_rows;
-            $conf_pagination['per_page'] = $n_limit;
-            $this->pagination->initialize($conf_pagination);
-            $data["pagination_links"] = $this->pagination->create_links();
+            $this->paginate($data, $total_rows, $n_limit);
             
             #### Views ####
             $this->load->view('header');
@@ -251,10 +264,11 @@ class Main extends CI_Controller {
             $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
             $this->form_validation->set_rules('affiliation', 'Affiliation|max_length[255]');
             $this->form_validation->set_rules('address', 'Full address', 'required|max_length[255]');
-            $this->form_validation->set_rules('name', 'Name', 'required|max_length[255]');
+            $this->form_validation->set_rules('firstname', 'Name', 'required|max_length[255]');
+            $this->form_validation->set_rules('lastname', 'Name', 'required|max_length[255]');
             $this->form_validation->set_rules('title_research', 'Title of the  research', 'required|max_length[255]');
-            $this->form_validation->set_rules('summary_research', 'Summary', 'required|min_length[30]|max_length[1024]');
-            $this->form_validation->set_rules('description_data', 'description', 'required|min_length[30]|max_length[1024]');
+            $this->form_validation->set_rules('summary_research', 'Summary', 'required|min_length[15]|max_length[1024]');
+            $this->form_validation->set_rules('description_data', 'description', 'required|min_length[15]|max_length[1024]');
             $this->form_validation->set_rules('timeline', 'Timeline', 'required|valid_date|max_length[255]');
 
             if($this->form_validation->run() == FALSE) {
@@ -283,7 +297,6 @@ class Main extends CI_Controller {
 
                 $post = $this->input->post();
                 $clean = $this->security->xss_clean($post);
-                print_r($post);
                 $requestId = $this->request_model->insertRequest($clean);
 
                 if(!$requestId){
@@ -293,7 +306,7 @@ class Main extends CI_Controller {
                     $requestInfo = $this->request_model->getRequestInfo($requestId);
                     $this->load->view('header');
                     print_r($requestInfo);
-                    echo '<br>Your request had been taken, you will be contacted by e-mail when it will be accepted <br>'
+                    echo '<br>Your request had been taken, you will be contacted by e-mail when accepted <br>'
                     . '<a href="'. base_url().'/main/">Back to login</a>';
                     $this->load->view('footer');
                 }

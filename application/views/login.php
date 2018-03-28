@@ -1,6 +1,14 @@
-<div class="container">
-    <div class="row">
-        <div class="col-lg-4 offset-lg-4">
+<div class="content container h-100">
+    <style>
+        body{
+            background: url(/public/img/background.jpg);
+        }
+        .card{
+            box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+        }
+    </style>
+    <div class="row align-items-center h-100">
+        <div class="col-lg-4 mx-auto px-3 py-3 card">
                 <h2>Please login</h2>
                 <?php $fattr = array('class' => 'form-signin');
                      echo form_open(base_url().'main/login/', $fattr); ?>

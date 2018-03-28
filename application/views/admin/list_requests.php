@@ -13,7 +13,7 @@
         </li>
     </ul>
     <form class="navbar-text form-inline">
-        <a class="btn" href="<?php echo base_url().'main' ?>">Retour au site</a>
+        <a href="<?php echo base_url().'main' ?>">Back to homepage</a>
     </form>
   </div>
 </nav>
@@ -22,9 +22,10 @@ $(document).ready(function() {
     $('#request-table').DataTable();
 } );
 </script>
-<?php echo $flash_message; ?>
 <form method="get">
-    <input type="submit" value="Export to CSV" name="csv" />
+    <button class="m-2 btn btn-primary" type="submit" name="csv" />
+    Export to CSV  <i class="fas fa-share"></i>
+    </button>
 </form>
 <table id="request-table" class="table table-bordered table-stripped">
     <thead>
@@ -40,7 +41,13 @@ $(document).ready(function() {
     <tbody>
         <?php
         foreach($requests as $value){
-            $accepted = isset($value->accepted) ? $value->accepted : "Not accepted yet";
+            if (isset($value->accepted)) {
+                $accepted = $value->accepted;
+                $class = " class = \"table-success\" ";
+            } else {
+                $accepted = "Not accepted yet";
+                $class = " class = \"table-secondary\" ";
+            }
             echo "<tr>";
             echo "<td>$value->id</td>";
             echo "<td>$value->email</td>";
@@ -48,8 +55,8 @@ $(document).ready(function() {
             echo "<td>$value->affiliation</td>";
             echo "<td>$value->title_research</td>";
             echo "<td>$value->timeline</td>";
-            echo "<td>$accepted</td>";
-            echo "<td><a href=\"".base_url()."admin/show_request/$value->id\">Show request</a> <a href=\"".base_url()."admin/delete_request/$value->id\" data-confirm=\"Are you sure you want to delete this request ?\">Delete</a>";
+            echo "<td$class>$accepted</td>";
+            echo "<td><a class=\"btn-sm btn-primary\" href=\"".base_url()."admin/show_request/$value->id\">Show <i class=\"fas fa-eye\"></i></a> <a class=\"btn-sm btn-danger\" href=\"".base_url()."admin/delete_request/$value->id\" data-confirm=\"Are you sure you want to delete this request and his associed user ?\">Delete <i class=\"fas fa-trash\"></i></a>";
             echo "</tr>";
         }?>
     </tbody>

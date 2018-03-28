@@ -34,7 +34,7 @@
             }?>
         <?php
             if (!isset($requestinfo->accepted)) {
-                echo "<a class=\"btn btn-primary\" href= \"".base_url()."admin/accept_request/$id\">Accept request</a>";
+                echo "<a class=\"btn btn-success\" href= \"".base_url()."admin/accept_request/$id\">Accept request</a>";
             } 
             echo form_submit(array('name'=>'apply','value'=>'Apply changes',"class"=>"btn btn-primary"));
         ?>

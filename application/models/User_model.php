@@ -14,12 +14,13 @@ class User_model extends CI_Model {
     public function insertUser($d)
     {
             $role = isset($d['role']) && ($d['role'] == '1') ? $this->roles[1]: $this->roles[0];
-            $expures = isset($d['expires']) ? $d['expires']: NULL;
+            $expires = isset($d['expires']) ? $d['expires']: NULL;
             $string = array(
                 'first_name'=>$d['firstname'],
                 'last_name'=>$d['lastname'],
                 'email'=>$d['email'],
-                'expires'=>$d['expires'],
+                'expires'=>$expires,
+                'created'=>date('d/m/Y'),
                 'role'=>$role,
                 'status'=>$this->status[0],
                 'request_id'=>$d['request_id']

@@ -13,7 +13,7 @@
         </li>
     </ul>
     <form class="navbar-text form-inline">
-        <a class="btn" href="<?php echo base_url().'main' ?>">Retour au site</a>
+        <a href="<?php echo base_url().'main' ?>">Back to homepage</a>
     </form>
   </div>
 </nav>
@@ -22,17 +22,17 @@ $(document).ready(function() {
     $('#user-table').DataTable();
 } );
 </script>
-<a href="<?php echo base_url()."admin/add/"; ?>">Add user <i class="fa fa-plus-sign"></i></a>
-<?php echo $flash_message; ?>
+<a class="m-2 btn btn-primary" href="<?php echo base_url()."admin/add/"; ?>">Add user  <i class="fas fa-plus-circle"></i></a>
 <table id="user-table" class="table table-bordered table-stripped">
     <thead>
         <th>Id</th>
         <th>E-mail</th>
-        <th>First name</th>
-        <th>Last name</th>
+        <th>Full name</th>
         <th>Role</th>
         <th>Last login</th>
+        <th>Created</th>
         <th>Expires</th>
+        <th>Request reference</th>
         <th>Action</th>
     </thead>
     <tbody>
@@ -42,12 +42,13 @@ $(document).ready(function() {
             echo "<tr>";
             echo "<td>$value->id</td>";
             echo "<td>$value->email</td>";
-            echo "<td>$value->first_name</td>";
-            echo "<td>$value->last_name</td>";
+            echo "<td>$value->first_name $value->last_name</td>";
             echo "<td>$value->role</td>";
             echo "<td>$value->last_login</td>";
+            echo "<td>$value->created</td>";
             echo "<td>$expires</td>";
-            echo "<td><a href=\"".base_url()."admin/delete_user/$value->id\" data-confirm=\"Are you sure you want to delete this user ?\">Delete</a>";
+            echo "<td><a href=\"". base_url() ."admin/show_request/$value->request_id\">$value->request_id</a></td>";
+            echo "<td><a class=\"btn-sm btn-danger\" href=\"".base_url()."admin/delete_user/$value->id\" data-confirm=\"Are you sure you want to delete this user and his associed request ?\">Delete <i class=\"fas fa-trash\"></i></a>";
             echo "</tr>";
         }?>
     </tbody>

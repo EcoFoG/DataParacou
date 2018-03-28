@@ -43,11 +43,10 @@ class Admin extends CI_Controller {
         if ($this->checkRights()) {
             if (isset($idrequest)) {
                 $requestinfo= $this->request_model->getRequestInfo($idrequest);
-                $expiresdate = explode(' - ',$requestinfo->timeline);
                 $data["email"] = $requestinfo->email;
                 $data["firstname"] = $requestinfo->firstname;
                 $data["lastname"] = $requestinfo->lastname;
-                $data["expires"] = $expiresdate[1];
+                $data["expires"] = $requestinfo->timeline;
             } else {
                 $data["email"] = NULL;
                 $data["firstname"] = NULL;
@@ -107,10 +106,24 @@ class Admin extends CI_Controller {
         $userinfo = $this->user_model->getUserInfo($id);
         if ($userinfo) {
             $this->user_model->deleteUser($id);
+            if (isset($userinfo->request_id)) {
+                $this->request_model->deleteRequest($id);
+            }
         } else {
             $this->session->set_flashdata('error_message',"The user n°$id doesn't exist");
         }
         redirect(base_url().'admin/list_users/');
+    }
+    
+    public function delete_request($id){
+        $this->checkRights();
+        $requestinfo = $this->request_model->getRequestInfo($id);
+        if ($requestinfo) {
+            $this->request_model->deleteRequest($id);
+        } else {
+            $this->session->set_flashdata('error_message',"The request n°$id doesn't exist");
+        }
+        redirect(base_url().'admin/list_requests/');
     }
     
     public function show_request($id){
@@ -171,11 +184,11 @@ class Admin extends CI_Controller {
         #### Account verifications ####
         $this->checkRights();
         
-        $data['flash_message'] = $this->session->flashdata('error_message');
+        $flash['flash_message'] = $this->session->flashdata('error_message');
         $data['users'] = $this->user_model->getUserList(); // get User list
 
         #### Views ####
-        $this->load->view('admin/header');
+        $this->load->view('admin/header',$flash);
         $this->load->view('admin/list_users', $data);
         $this->load->view('admin/footer');
     }
@@ -183,10 +196,9 @@ class Admin extends CI_Controller {
     public function list_requests(){
         #### Account verifications ####
         $this->checkRights();
-        
         $get = $this->input->get();
         
-        $data['flash_message'] = $this->session->flashdata('error_message');
+        $flash['flash_message'] = $this->session->flashdata('error_message');
         $requests = $this->request_model->getRequestList(); // get requests list
         $data['requests'] = $requests;
 
@@ -196,7 +208,7 @@ class Admin extends CI_Controller {
         }
         
         #### Views ####
-        $this->load->view('admin/header');
+        $this->load->view('admin/header',$flash);
         $this->load->view('admin/list_requests', $data);
         $this->load->view('admin/footer');
     }
