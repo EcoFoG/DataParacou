@@ -184,8 +184,16 @@ class Admin extends CI_Controller {
         #### Account verifications ####
         $this->checkRights();
         
+        $get = $this->input->get();
+        
         $data['flash_message'] = $this->session->flashdata('error_message');
-        $data['requests'] = $this->request_model->getRequestList(); // get requests list
+        $requests = $this->request_model->getRequestList(); // get requests list
+        $data['requests'] = $requests;
+
+        if(isset($get["csv"])){
+            $array = json_decode(json_encode($requests), True);
+            $this->exports_array_csv($array,"Request_list");
+        }
         
         #### Views ####
         $this->load->view('admin/header');

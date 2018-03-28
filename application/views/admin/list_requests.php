@@ -17,19 +17,15 @@
     </form>
   </div>
 </nav>
-<script type="text/javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/dataTables.buttons.min.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
-    $('#request-table').DataTable({
-        dom: 'Bfrtip',
-        buttons: [
-            'csv', 'excel'
-        ]
-    });
+    $('#request-table').DataTable();
 } );
 </script>
 <?php echo $flash_message; ?>
+<form method="get">
+    <input type="submit" value="Export to CSV" name="csv" />
+</form>
 <table id="request-table" class="table table-bordered table-stripped">
     <thead>
         <th>Id</th>
