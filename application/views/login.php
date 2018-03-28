@@ -25,6 +25,7 @@
                 <?php echo form_submit(array('value'=>'Let me in!', 'class'=>'btn btn-lg btn-primary btn-block')); ?>
                 <?php echo form_close(); ?>
                 <p>Click <a href="<?php echo base_url();?>main/forgot">here</a> if you forgot your password.</p>
+                <p>Need an account ? Click <a href="<?php echo base_url();?>main/request">here</a> to request one</p>
             </div>
     </div>
 </div>

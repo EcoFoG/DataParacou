@@ -11,11 +11,17 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="apple-touch-icon" href="apple-touch-icon.png">
         
-        <link rel="stylesheet" href="/public/css/bootstrap.min.css" crossorigin="anonymous">
-        <link rel="stylesheet" href="/public/css/main.css">
+        <link rel="stylesheet" type="text/css" href="/public/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="/public/css/dataTables.bootstrap4.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="/public/css/daterangepicker.css" />
+        <link rel="stylesheet" type="text/css" href="/public/css/main.css">
         
-        <script type="text/javascript" src="/public/css/jquery.min.js"></script>
-        <script src="/public/css/bootstrap.min.js" crossorigin="anonymous"></script>
+        <script type="text/javascript" src="/public/js/jquery.min.js"></script>
+        <script type="text/javascript" src="/public/js/jquery.dataTables.min.js"></script>
+        <script type="text/javascript" src="/public/js/dataTables.bootstrap4.min.js"></script>
+        <script type="text/javascript" src="/public/js/moment.min.js"></script>
+        <script type="text/javascript" src="/public/js/daterangepicker.js"></script>
+        <script type="text/javascript" src="/public/js/bootstrap.min.js"></script>
         <script>
             $(function() {
                 $('a[data-confirm]').click(function(ev) {

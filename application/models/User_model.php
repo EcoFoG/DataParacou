@@ -13,12 +13,16 @@ class User_model extends CI_Model {
 
     public function insertUser($d)
     {
+            $role = isset($d['role']) && ($d['role'] == '1') ? $this->roles[1]: $this->roles[0];
+            $expures = isset($d['expires']) ? $d['expires']: NULL;
             $string = array(
                 'first_name'=>$d['firstname'],
                 'last_name'=>$d['lastname'],
                 'email'=>$d['email'],
-                'role'=>$this->roles[0],
+                'expires'=>$d['expires'],
+                'role'=>$role,
                 'status'=>$this->status[0],
+                'request_id'=>$d['request_id']
             );
             $q = $this->db->insert_string('users',$string);
             $this->db->query($q);
@@ -103,7 +107,7 @@ class User_model extends CI_Model {
     {
         $data = array(
                'password' => $post['password'],
-               'last_login' => date('Y-m-d h:i:s A'),
+               'last_login' => date('d/m/Y h:i:s A'),
                'status' => $this->status[1]
             );
         $this->db->where('id', $post['user_id']);
@@ -126,9 +130,20 @@ class User_model extends CI_Model {
         $this->db->where('email', $post['email']);
         $query = $this->db->get('users');
         $userInfo = $query->row();
+        
+        $expiresDate = $userInfo->expires;
+        $timestamp = strtotime($expiresDate);
+        if ($timestamp === FALSE) {
+          $timestamp = strtotime(str_replace('/', '-', $expiresDate));
+        }
 
         if(!$this->password->validate_password($post['password'], $userInfo->password)){
             error_log('Unsuccessful login attempt('.$post['email'].')');
+            $this->session->set_flashdata('flash_message', 'The login was unsucessful');
+            return false;
+        } else if ((isset($expiresDate)) && (time()>$timestamp)) {
+            error_log('Unsuccessful login attempt('.$post['email'].') account is expired');
+            $this->session->set_flashdata('flash_message', 'The account is expired');
             return false;
         }
 
@@ -141,7 +156,7 @@ class User_model extends CI_Model {
     public function updateLoginTime($id)
     {
         $this->db->where('id', $id);
-        $this->db->update('users', array('last_login' => date('Y-m-d h:i:s A')));
+        $this->db->update('users', array('last_login' => date('d/m/Y h:i:s A')));
         return;
     }
 

@@ -9,6 +9,7 @@ class Main extends CI_Controller {
     function __construct(){
         parent::__construct();
         $this->load->model('User_model', 'user_model', TRUE);
+        $this->load->model('Request_model', 'request_model', TRUE);
 
         $this->load->library('form_validation');
         $this->form_validation->set_error_delimiters('<div class="error">', '</div>');
@@ -16,6 +17,8 @@ class Main extends CI_Controller {
         $this->roles = $this->config->item('roles');
         $this->load->helper('form');
         $this->load->helper('url');
+        $this->load->helper('download');
+        $this->load->helper('date');
         $this->load->library('email');
         $this->load->library('session');
         $this->load->library('table');
@@ -32,25 +35,21 @@ class Main extends CI_Controller {
             if($this->input->post("disconnect")){
                 redirect(base_url().'main/logout/');
             }
-            if(empty($this->session->userdata['email'])){
+            if(empty($this->session->userdata['email']) || ((isset($this->session->userdata['expires'])) && (time() > strtotime(str_replace('/', '-', $this->session->userdata['expires']))))){
                 redirect(base_url().'main/login/');
-            }
-            
-            if (!isset($get["page"])) {
-                $offset = 1;
-            } else {
-                $offset = $get["page"];
             }
             
             $data['role'] = $this->session->userdata('role');
             
+            #### get GET method variables ####
             $get = $this->input->get(NULL, FALSE);
             $data["get"] = $get;
             
             $paracouDB = $this->load->database('paracou', TRUE);
             
-            /* Configuration of the table in application/config/datatable.php */
+            /* Configuration of the data table in application/config/datatable.php */
             $this->config->load("datatable");
+            /* Configuration of the tooltips in application/config/tooltips.php */
             $this->config->load("tooltips");
             $tmpl = $this->config->item("table_template");
             $data['headers'] = $this->config->item("headers");
@@ -58,14 +57,9 @@ class Main extends CI_Controller {
             $data['tip_CodeAlive'] = $this->config->item("tip_CodeAlive");
             $filters = $this->config->item("filters");
             $columns = $this->config->item("columns");
+            $this->table->set_template($tmpl); // Apply template to the generated table
             
-            $config['total_rows'] = 90;
-            $config['per_page'] = 25;
-            //Initialisation pagination
-            $this->pagination->initialize($config);
-            
-            $this->table->set_template($tmpl);
-            
+            #### Get levels of filters in the databases ####
             foreach ($filters as $value) {
                 $temp = $paracouDB->query("select \"$value\" from taparacou group by \"$value\" order by \"$value\"")->result_array();
                 foreach ($temp as $key2=>$value2) {
@@ -73,10 +67,10 @@ class Main extends CI_Controller {
                 }
                 $data['F'.$value] = $temp;
             }
-            
             $data['filters'] = $filters;
             $filters[] = "SubPlot";
             
+            #### Set default circMax and circMin ####
             if(isset($get['circMax'])){
                 $circMax = $this->input->get('circMax');
             } else {
@@ -87,48 +81,53 @@ class Main extends CI_Controller {
             } else {
                 $circMin = 10;
             }
-            
             $min_tmp = $paracouDB->query("SELECT min(\"Circ\") FROM taparacou")->row();
             $data['circDBMin'] = $min_tmp->min;
             $max_tmp = $paracouDB->query("SELECT max(\"Circ\") FROM taparacou")->row();
             $data['circDBMax'] = $max_tmp->max;
             
-            if (isset($get['limit'])) {
-                $l_tmp= $get['limit'];
-                $limit = " LIMIT $l_tmp OFFSET $offset";
-            } else {
-                $limit = " LIMIT 50 OFFSET $offset";
-            }
+            #### Create limit string for the query ####
+            $offset = isset($get["page"]) ? $get["page"] : 1;
+            $n_limit = isset($get['limit']) ? $get['limit'] : 50;
+            $limit = " LIMIT $n_limit OFFSET $offset";
             
+            #### Create like string for the query ####
             $flag = count($filters);
             foreach($filters as $value){
                $flag = (isset($get[$value])) ? $flag-1: $flag;
             }
-            $like = (count($filters) > $flag) ? $this->like($filters,$get) : '';
+            $like = (count($filters) > $flag) ? $this->like($filters,$get) : ''; // Empty chain in $like if no filter is select
             
-            if (isset($get["csv"])) {
-                $this->load->helper('download');
-                $this->load->helper('date');
-                $time = time();
-                $query =   "SELECT \"".implode("\", \"", $this->pluck($columns, 'db'))."\" "
-                . "FROM taparacou "
-                . "WHERE \"Circ\" BETWEEN $circMin AND $circMax "
-                . "$like "
-                . "ORDER BY \"TreeFieldNum\",\"CensusYear\"";
-                $name = "Paracou".mdate("%d%m%Y",$time).".csv";
-                $csv = $this->dbutil->csv_from_result($paracouDB->query($query));
-                force_download($name, $csv);
-                
-                
-            }
-            
+            #### Query ####
             $query =   "SELECT \"".implode("\", \"", $this->pluck($columns, 'db'))."\" "
               . "FROM taparacou "
               . "WHERE \"Circ\" BETWEEN $circMin AND $circMax "
               . "$like "
-              . "ORDER BY \"TreeFieldNum\",\"CensusYear\""
-              . "$limit" ;
+              . "ORDER BY \"TreeFieldNum\",\"CensusYear\"";
+            
+            #### Generate the csv ####
+            if(isset($get["csv"])){
+                $time = time();
+                $name = "Paracou".mdate("%d%m%Y",$time).".csv"; // Name of the CSV
+                $csv = $this->dbutil->csv_from_result($paracouDB->query($query));
+                force_download($name, $csv);
+            }
+            
+            #### Generate the table ####
+            $total_rows = $paracouDB->query($query)->num_rows(); // Getting the number of rows for pagination
+            $query .= "$limit" ;
             $data['table'] = $paracouDB->query($query)->result_array();
+            
+            #### Pagination ####
+            $this->config->load("pagination");
+            $conf_pagination = $this->config->item("pagination");
+            $conf_pagination['base_url'] = base_url()."main/" ;
+            $conf_pagination['total_rows'] = $total_rows;
+            $conf_pagination['per_page'] = $n_limit;
+            $this->pagination->initialize($conf_pagination);
+            $data["pagination_links"] = $this->pagination->create_links();
+            
+            #### Views ####
             $this->load->view('header');
             $this->load->view('index', $data);
             $this->load->view('footer');
@@ -237,7 +236,6 @@ class Main extends CI_Controller {
                 $userInfo = $this->user_model->checkLogin($clean);
 
                 if(!$userInfo){
-                    $this->session->set_flashdata('flash_message', 'The login was unsucessful');
                     redirect(base_url().'main/login');
                 }
                 foreach($userInfo as $key=>$val){
@@ -247,6 +245,62 @@ class Main extends CI_Controller {
             }
 
         }
+        
+        public function request()
+        {
+            $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
+            $this->form_validation->set_rules('affiliation', 'Affiliation|max_length[255]');
+            $this->form_validation->set_rules('address', 'Full address', 'required|max_length[255]');
+            $this->form_validation->set_rules('name', 'Name', 'required|max_length[255]');
+            $this->form_validation->set_rules('title_research', 'Title of the  research', 'required|max_length[255]');
+            $this->form_validation->set_rules('summary_research', 'Summary', 'required|min_length[30]|max_length[1024]');
+            $this->form_validation->set_rules('description_data', 'description', 'required|min_length[30]|max_length[1024]');
+            $this->form_validation->set_rules('timeline', 'Timeline', 'required|valid_date|max_length[255]');
+
+            if($this->form_validation->run() == FALSE) {
+                
+                $fields = array(
+                    "CensusYear",
+                    "Plot"
+                );
+                
+                $paracouDB = $this->load->database('paracou', TRUE); // Use paracou database
+                
+                /* Get columns name */
+                $data["columns_name"] = $paracouDB->query("SELECT *
+                FROM information_schema.columns
+                WHERE table_schema = 'public'
+                  AND table_name   = 'taparacou'")->result_array();
+                
+                foreach ($fields as $value) {
+                    $data[$value] = $paracouDB->query("select \"$value\" from taparacou group by \"$value\" order by \"$value\"")->result_array();
+                }
+                
+                $this->load->view('header');
+                $this->load->view('request',$data);
+                $this->load->view('footer');
+            }else{
+
+                $post = $this->input->post();
+                $clean = $this->security->xss_clean($post);
+                print_r($post);
+                $requestId = $this->request_model->insertRequest($clean);
+
+                if(!$requestId){
+                    $this->session->set_flashdata('flash_message', 'A problem appeared in your request');
+                    redirect(base_url().'main/login');
+                } else {
+                    $requestInfo = $this->request_model->getRequestInfo($requestId);
+                    $this->load->view('header');
+                    print_r($requestInfo);
+                    echo '<br>Your request had been taken, you will be contacted by e-mail when it will be accepted <br>'
+                    . '<a href="'. base_url().'/main/">Back to login</a>';
+                    $this->load->view('footer');
+                }
+            }
+
+        }
+
 
         public function logout()
         {

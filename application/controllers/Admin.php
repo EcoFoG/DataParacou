@@ -6,6 +6,7 @@ class Admin extends CI_Controller {
     function __construct(){
             parent::__construct();
             $this->load->model('User_model', 'user_model', TRUE);
+            $this->load->model('Request_model', 'request_model', TRUE);
 
             $this->load->library('form_validation');
             $this->form_validation->set_error_delimiters('<div class="error">', '</div>');
@@ -13,48 +14,62 @@ class Admin extends CI_Controller {
             $this->roles = $this->config->item('roles');
             $this->load->helper('form');
             $this->load->helper('url');
+            $this->load->helper('inflector');
             $this->load->library('email');
             $this->load->library('PeEmail');
             $this->load->library('session');
             $this->load->library('table');
+            $this->load->library('pagination');
             $this->load->dbutil();
 
         }
-
-    public function index(){
+        
+    protected function checkRights(){
         if(empty($this->session->userdata['email'])){
             redirect(base_url().'main/login/');
         }
         if ($this->session->userdata('role') != 'admin'){        
             redirect(base_url().'admin/right_error/');
         } else {
+            return true;
+        }
+    }    
+    public function index(){
+        if ($this->checkRights()) {
             redirect(base_url().'admin/list_users/');
         }
-        
     }
-    public function add(){
-        if(empty($this->session->userdata['email'])){
-            redirect(base_url().'main/login/');
-        }
-        if ($this->session->userdata('role') != 'admin'){        
-            redirect(base_url().'admin/right_error/');
-        } else {
-
+    public function add($idrequest = NULL){
+        if ($this->checkRights()) {
+            if (isset($idrequest)) {
+                $requestinfo= $this->request_model->getRequestInfo($idrequest);
+                $expiresdate = explode(' - ',$requestinfo->timeline);
+                $data["email"] = $requestinfo->email;
+                $data["firstname"] = $requestinfo->firstname;
+                $data["lastname"] = $requestinfo->lastname;
+                $data["expires"] = $expiresdate[1];
+            } else {
+                $data["email"] = NULL;
+                $data["firstname"] = NULL;
+                $data["lastname"] = NULL;
+                $data["expires"] = date('d/m/Y', strtotime('+1 months')); 
+            }
             $this->form_validation->set_rules('firstname', 'First Name', 'required');
             $this->form_validation->set_rules('lastname', 'Last Name', 'required');
             $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
+            $this->form_validation->set_rules('expires', 'Expires', 'valid_date');
 
-            if ($this->form_validation->run() == FALSE) {
+            if ($this->form_validation->run() == FALSE){
                 $this->load->view('admin/header');
-                $this->load->view('admin/register');
+                $this->load->view('admin/register',$data);
                 $this->load->view('admin/footer');
             }else{
                 if($this->user_model->isDuplicate($this->input->post('email'))){
                     $this->session->set_flashdata('flash_message', 'User email already exists');
                     redirect(base_url().'admin');
                 }else{
-
                     $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
+                    $clean["request_id"] = isset($idrequest) ? $idrequest : NULL;
                     $id = $this->user_model->insertUser($clean);
                     $token = $this->user_model->insertToken($id);
                     $dest = $this->input->post('email');
@@ -68,7 +83,8 @@ class Admin extends CI_Controller {
                     $message .= "<strong>You have been invited to Paracou-Ex</strong><br>";
                     $message .= '<strong>Please click:</strong> ' . $link;
                     
-                    if ($catch = $this->peemail->sendMail($dest,"Invitation Paracou-Ex",$message)) {
+                    $catch = $this->peemail->sendMail($dest,"Invitation Paracou-Ex",$message);
+                    if ($catch) {
                         echo "E-mail sent at $dest";
                     } else {
                         echo $catch;
@@ -86,24 +102,94 @@ class Admin extends CI_Controller {
             }
         }
     }
-    public function delete($id){
+    public function delete_user($id){
+        $this->checkRights();
         $userinfo = $this->user_model->getUserInfo($id);
         if ($userinfo) {
-            if ($userinfo->role != "admin") {
-                $this->user_model->deleteUser($id);
-            } else {
-                $this->session->set_flashdata('error_message',"You cannot delete an admin");
-            }
+            $this->user_model->deleteUser($id);
         } else {
             $this->session->set_flashdata('error_message',"The user n°$id doesn't exist");
         }
         redirect(base_url().'admin/list_users/');
     }
-    public function list_users(){
-        $data['flash_message'] = $this->session->flashdata('error_message');
-        $data['users'] = $this->user_model->getUserList();
+    
+    public function show_request($id){
+        $this->checkRights();
+        $requestinfo = $this->request_model->getRequestInfo($id);
+        $data["id"] = $id;
+        if ($requestinfo) {
+            $data['requestinfo'] = $requestinfo;
+            if ($this->input->post('apply')) {
+                $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
+                $clean["id"] = $id;
+                $clean["accepted"] = $requestinfo->accepted;
+                $this->request_model->updateRequestInfo($clean);
+            }
+        } else {
+            $this->session->set_flashdata('error_message',"The request n°$id doesn't exist");
+            redirect(base_url().'admin/list_requests/');
+        }
         $this->load->view('admin/header');
-        $this->load->view('admin/list', $data);
+        $this->load->view('admin/show_request', $data);
+        $this->load->view('admin/footer');
+    }
+    
+    public function accept_request($id){
+        $this->checkRights();
+        $requestinfo = $this->request_model->getRequestInfo($id);
+        if (($requestinfo) && !isset($requestinfo->accepted)) {
+            
+            $this->form_validation->set_rules('specific_conditions', 'Specific conditions', 'max_length[1024]');
+
+            if ($this->form_validation->run() == FALSE) {
+                $data['request_id'] = $id;
+                $this->load->view('admin/header');
+                $this->load->view('admin/accept_request',$data);
+                $this->load->view('admin/footer');
+            } else {
+                if($this->request_model->isDuplicate($this->input->post('email'))){
+                    $this->session->set_flashdata('flash_message', 'User email already exists');
+                    redirect(base_url().'admin');
+                }
+                $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
+                $clean["id"] = $id;
+                $clean["accepted"] = date('d/m/Y');
+                $this->request_model->updateRequestInfo($clean);
+                redirect(base_url()."admin/add/$id");
+            }
+        } else if (isset($requestinfo->accepted)) {
+            $this->session->set_flashdata('error_message',"The request n°$id is already accepted");
+            redirect(base_url().'admin/list_requests/');
+        } else {
+            $this->session->set_flashdata('error_message',"The request n°$id doesn't exist");
+            redirect(base_url().'admin/list_requests/');
+        }
+    }
+    
+    public function list_users(){
+        
+        #### Account verifications ####
+        $this->checkRights();
+        
+        $data['flash_message'] = $this->session->flashdata('error_message');
+        $data['users'] = $this->user_model->getUserList(); // get User list
+
+        #### Views ####
+        $this->load->view('admin/header');
+        $this->load->view('admin/list_users', $data);
+        $this->load->view('admin/footer');
+    }
+    
+    public function list_requests(){
+        #### Account verifications ####
+        $this->checkRights();
+        
+        $data['flash_message'] = $this->session->flashdata('error_message');
+        $data['requests'] = $this->request_model->getRequestList(); // get requests list
+        
+        #### Views ####
+        $this->load->view('admin/header');
+        $this->load->view('admin/list_requests', $data);
         $this->load->view('admin/footer');
     }
     
@@ -112,6 +198,22 @@ class Admin extends CI_Controller {
         $this->load->view('admin/error');
         $this->load->view('admin/footer');
     }
+    
+    public function exports_array_csv($data,$name){
+                    
+            header("Content-type: application/csv");
+            header("Content-Disposition: attachment; filename=\"$name".".csv\"");
+            header("Pragma: no-cache");
+            header("Expires: 0");
+
+            $handle = fopen('php://output', 'w');
+            
+            foreach ($data as $data) {
+                fputcsv($handle, $data);
+            }
+                fclose($handle);
+            exit;
+        }
     
     public function base64url_encode($data) {
       return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');

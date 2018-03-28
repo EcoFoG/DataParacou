@@ -52,6 +52,7 @@
       <a class="btn" href="<?php echo base_url().'main/logout/' ?>">Logout</a>
   </form>
 </nav>
+<br>
 <div class="container-fluid"> 
     <div class="card">
         <div class="card-header">Filters</div>
@@ -194,15 +195,17 @@
                                 <br>
                             </div>
                         </div>
-                        <div class="row align-item-end">
-                            <input class="btn" type="submit" name="apply" value="Apply">
-                            <input class="btn" type="submit" name="csv" value="Export to CSV">
-                        </div>
+                        <input class="btn" type="submit" name="apply" value="Apply">
+                        <input class="btn" type="submit" name="csv" value="Export to CSV">
                     </div>
                 </div>
             </form>
         </div>
             <br>
+            <div class="container">
+                
+                <?php echo "$pagination_links";?>
+            </div>
     </div>
         <?php 
             $this->table->set_heading($headers);

@@ -51,6 +51,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 */
 $route['default_controller'] = 'main';
 $route['admin'] = 'admin';
-$route['admin/delete/(:num)'] = 'admin/delete/$1';
+$route['admin/delete_user/(:num)'] = 'admin/delete_user/$1';
+$route['admin/delete_request/(:num)'] = 'admin/delete_request/$1';
+$route['admin/accept_request/(:num)'] = 'admin/accept_request/$1';
+$route['admin/show_request/(:num)'] = 'admin/show_request/$1';
+$route['admin/add/(:num)'] = 'admin/add/$1';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
