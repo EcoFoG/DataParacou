@@ -1,7 +1,7 @@
-<div class="container">
-    <div class="row">
+<div class="container mx-auto my-3">
+    <div class="row justify-content-center">
         <div class="col-8 justify-content-center">
-            <h5>Please enter the required information below.</h5>
+            <h5>Informations</h5>
             <?php 
                 $fattr = array('id' => 'showrequest');
                 echo form_open("",$fattr); ?>
@@ -19,6 +19,9 @@
                         case "description_data":
                             echo form_textarea(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => set_value("$key",$value), 'disabled' => TRUE));
                             break;
+                        case "accepted":
+                            echo form_textarea(array('name'=>"$key", 'id'=> "$key",'placeholder'=>'Not accepted yet', 'class'=>'form-control', 'value' => set_value("$key",$value), 'disabled' => TRUE));
+                            break;
                         case "specific_conditions":
                             echo form_textarea(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => set_value("$key",$value)));
                             break;
@@ -34,7 +37,8 @@
             }?>
         <?php
             if (!isset($requestinfo->accepted)) {
-                echo "<a class=\"btn btn-success\" href= \"".base_url()."admin/accept_request/$id\">Accept request</a>";
+                echo "<a class=\"btn btn-success\" href= \"".base_url()."admin/accept_request/$id\">Accept request <i class=\"fas fa-check\"></i></a>";
+                echo "<a class=\"btn btn-danger\" href= \"".base_url()."admin/decline_request/$id\" data-confirm=\"Are you sure you want to delete this user and his associed request ?\">Decline request  <i class=\"fas fa-times\"></i></a>";
             } 
             echo form_submit(array('name'=>'apply','value'=>'Apply changes',"class"=>"btn btn-primary"));
         ?>

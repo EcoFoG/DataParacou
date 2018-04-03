@@ -46,7 +46,7 @@ class Admin extends CI_Controller {
                 $data["email"] = $requestinfo->email;
                 $data["firstname"] = $requestinfo->firstname;
                 $data["lastname"] = $requestinfo->lastname;
-                $data["expires"] = $requestinfo->timeline;
+                $data["expires"] = $requestinfo->expires;
             } else {
                 $data["email"] = NULL;
                 $data["firstname"] = NULL;
@@ -115,17 +115,6 @@ class Admin extends CI_Controller {
         redirect(base_url().'admin/list_users/');
     }
     
-    public function delete_request($id){
-        $this->checkRights();
-        $requestinfo = $this->request_model->getRequestInfo($id);
-        if ($requestinfo) {
-            $this->request_model->deleteRequest($id);
-        } else {
-            $this->session->set_flashdata('error_message',"The request n°$id doesn't exist");
-        }
-        redirect(base_url().'admin/list_requests/');
-    }
-    
     public function show_request($id){
         $this->checkRights();
         $requestinfo = $this->request_model->getRequestInfo($id);
@@ -160,16 +149,35 @@ class Admin extends CI_Controller {
                 $this->load->view('admin/accept_request',$data);
                 $this->load->view('admin/footer');
             } else {
-                if($this->request_model->isDuplicate($this->input->post('email'))){
-                    $this->session->set_flashdata('flash_message', 'User email already exists');
-                    redirect(base_url().'admin');
+                if($user_id = $this->user_model->isDuplicate($this->input->post('email'))){
+                    $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
+                    $clean["id"] = $id;
+                    $clean["accepted"] = date('Y/m/d');
+                    $this->request_model->updateRequestInfo($clean);
+                    redirect(base_url()."admin/edit_user/user-$user_id/request-$id");
                 }
                 $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
                 $clean["id"] = $id;
-                $clean["accepted"] = date('d/m/Y');
+                $clean["accepted"] = date('Y/m/d');
                 $this->request_model->updateRequestInfo($clean);
                 redirect(base_url()."admin/add/$id");
             }
+        } else if (isset($requestinfo->accepted)) {
+            $this->session->set_flashdata('error_message',"The request n°$id is already accepted");
+            redirect(base_url().'admin/list_requests/');
+        } else {
+            $this->session->set_flashdata('error_message',"The request n°$id doesn't exist");
+            redirect(base_url().'admin/list_requests/');
+        }
+    }
+    
+    public function decline_request($id){
+        $this->checkRights();
+        $requestinfo = $this->request_model->getRequestInfo($id);
+        if (($requestinfo) && !isset($requestinfo->accepted)) {
+            $d["id"] = $id;
+            $d["accepted"] = 'Declined';
+            $this->request_model->updateRequestInfo($d);
         } else if (isset($requestinfo->accepted)) {
             $this->session->set_flashdata('error_message',"The request n°$id is already accepted");
             redirect(base_url().'admin/list_requests/');
@@ -190,6 +198,33 @@ class Admin extends CI_Controller {
         #### Views ####
         $this->load->view('admin/header',$flash);
         $this->load->view('admin/list_users', $data);
+        $this->load->view('admin/footer');
+    }
+    
+    public function edit_user($id, $request_id = NULL){
+        $this->checkRights();
+        $userinfo = $this->user_model->getUserInfo($id);
+        if (isset($request_id)) {
+            $requestinfo= $this->request_model->getRequestInfo($request_id);
+            $data["first_name"] = $requestinfo->firstname;
+            $data["last_name"] = $requestinfo->lastname;
+            $data["expires"] = $requestinfo->timeline;
+        }
+        $data["id"] = $id;
+        if ($userinfo) {
+            $data['userinfo'] = $userinfo;
+            if ($this->input->post('apply')) {
+                $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
+                $clean['user_id'] = $id;
+                $this->user_model->editUserInfo($clean);
+                redirect(base_url().'admin/list_users/');
+            }
+        } else {
+            $this->session->set_flashdata('error_message',"The user n°$id doesn't exist");
+            redirect(base_url().'admin/list_users/');
+        }
+        $this->load->view('admin/header');
+        $this->load->view('admin/edit_user', $data);
         $this->load->view('admin/footer');
     }
     

@@ -34,14 +34,17 @@ $(document).ready(function() {
         <th>Full name</th>
         <th>Affiliation</th>
         <th>Title Research</th>
-        <th>Timeline</th>
+        <th>Expiration</th>
         <th>Accepted</th>
         <th>Actions</th>
     </thead>
     <tbody>
         <?php
         foreach($requests as $value){
-            if (isset($value->accepted)) {
+            if ($value->accepted === "Declined") {
+                $accepted = $value->accepted;
+                $class = " class = \"table-danger\" ";
+            } else if (isset($value->accepted)) {
                 $accepted = $value->accepted;
                 $class = " class = \"table-success\" ";
             } else {
@@ -56,7 +59,7 @@ $(document).ready(function() {
             echo "<td>$value->title_research</td>";
             echo "<td>$value->timeline</td>";
             echo "<td$class>$accepted</td>";
-            echo "<td><a class=\"btn-sm btn-primary\" href=\"".base_url()."admin/show_request/$value->id\">Show <i class=\"fas fa-eye\"></i></a> <a class=\"btn-sm btn-danger\" href=\"".base_url()."admin/delete_request/$value->id\" data-confirm=\"Are you sure you want to delete this request and his associed user ?\">Delete <i class=\"fas fa-trash\"></i></a>";
+            echo "<td><a class=\"btn-sm btn-primary\" href=\"".base_url()."admin/show_request/$value->id\">Show <i class=\"fas fa-eye\"></i></a>";
             echo "</tr>";
         }?>
     </tbody>

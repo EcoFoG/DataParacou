@@ -28,7 +28,7 @@ class Request_model extends CI_Model {
             'years'=>$years,
             'plots'=>$plots,
             'timeline'=>$d['timeline'],
-            'requested'=>date("d/m/Y")
+            'requested'=>date("Y/m/d")
         );
         $q = $this->db->insert_string('requests',$string);
         $this->db->query($q);

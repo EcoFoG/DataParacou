@@ -22,10 +22,12 @@ class Main extends CI_Controller {
         $this->load->library('email');
         $this->load->library('session');
         $this->load->library('table');
+        $this->load->driver('cache', array('adapter' => 'file'));
         $this->load->library('pagination');
         $this->load->dbutil();
 
     }
+    // Redirections, return role of user connected
     protected function checkLogin(){
         if($this->input->post("admin")){
             redirect(base_url().'admin');
@@ -39,35 +41,48 @@ class Main extends CI_Controller {
         return $this->session->userdata('role');
     }
     
+    // Put config files in variables
     private function configTable(&$data, &$filters, &$columns){
         /* Configuration of the data table in application/config/datatable.php */
         $this->config->load("datatable");
-        /* Configuration of the tooltips in application/config/tooltips.php */
-        $this->config->load("tooltips");
         $tmpl = $this->config->item("table_template");
         $data['headers'] = $this->config->item("headers");
-        $data['tip_CodeMeas'] = $this->config->item("tip_CodeMeas");
-        $data['tip_CodeAlive'] = $this->config->item("tip_CodeAlive");
+        $data['tooltips'] = $this->config->item("tooltips");
+        $data['defaultCircBoundaries'] = $this->config->item("defaultCircBoundaries");
         $filters = $this->config->item("filters");
         $columns = $this->config->item("columns");
         $this->table->set_template($tmpl); // Apply template to the generated table
     }
+    
     private function getFilters(&$data, $filters, $paracouDB){
             foreach ($filters as $value) {
-                $temp = $paracouDB->query("select \"$value\" from taparacou group by \"$value\" order by \"$value\"")->result_array();
-                foreach ($temp as $key2=>$value2) {
-                    $temp[$key2] = $temp[$key2][$value];
+                $data['F'.$value] = $this->cache->get('F'.$value);
+                if (!($data['F'.$value])) {
+                    $temp = $paracouDB->query("select \"$value\" from taparacou group by \"$value\" order by \"$value\"")->result_array();
+                    foreach($temp as $key2=>$value2) {
+                        $temp[$key2] = $temp[$key2][$value];
+                    }
+                    $data['F'.$value] = $temp;
+                    $this->cache->save('F'.$value, $data['F'.$value], 86400);
                 }
-                $data['F'.$value] = $temp;
             }
             $data['filters'] = $filters;
-            $filters[] = "SubPlot";
     }
     private function getCircBoundaries(&$data, $paracouDB){
-            $min_tmp = $paracouDB->query("SELECT min(\"Circ\") FROM taparacou")->row();
-            $data['circDBMin'] = $min_tmp->min;
-            $max_tmp = $paracouDB->query("SELECT max(\"Circ\") FROM taparacou")->row();
-            $data['circDBMax'] = $max_tmp->max;
+            $circDBMin = $this->cache->get('circDBMin');
+            $circDBMax = $this->cache->get('circDBMin');
+            if (!$circDBMin || !$circDBMax) {
+                $min_tmp = $paracouDB->query("SELECT min(\"Circ\") FROM taparacou")->row();
+                $data['circDBMin'] = $min_tmp->min;
+                $max_tmp = $paracouDB->query("SELECT max(\"Circ\") FROM taparacou")->row();
+                $data['circDBMax'] = $max_tmp->max;
+                $this->cache->save('circDBMin', $circDBMin, 86400);
+                $this->cache->save('circDBMax', $circDBMax, 86400);
+            } else {
+                $data['circDBMax'] = $circDBMax;
+                $data['circDBMin'] = $circDBMin;
+            }
+            
     }
     private function limit($offset, $n_limit){
         $limit = " LIMIT $n_limit OFFSET $offset";
@@ -99,8 +114,8 @@ class Main extends CI_Controller {
             $this->getFilters($data, $filters, $paracouDB);
             
             #### Set default circMax and circMin ####
-            $circMax = isset($get['circMax']) ? $get['circMax'] : 150;
-            $circMin = isset($get['circMin']) ? $get['circMin'] : 10;
+            $circMax = isset($get['circMax']) ? $get['circMax'] : $data['defaultCircBoundaries']['circMax'];
+            $circMin = isset($get['circMin']) ? $get['circMin'] : $data['defaultCircBoundaries']['circMin'];
             
             #### Get Circ boundaries in the database ####
             $this->getCircBoundaries($data,$paracouDB);
@@ -122,12 +137,12 @@ class Main extends CI_Controller {
               . "FROM taparacou "
               . "WHERE \"Circ\" BETWEEN $circMin AND $circMax "
               . "$like "
-              . "ORDER BY \"TreeFieldNum\",\"CensusYear\"";
+              . "ORDER BY \"Plot\",\"SubPlot\",\"TreeFieldNum\",\"CensusYear\"";
             
             #### Generate the csv ####
             if(isset($get["csv"])){
                 $time = time();
-                $name = "Paracou".mdate("%d%m%Y",$time).".csv"; // Name of the CSV
+                $name = "Paracou".mdate("%Y%m%d",$time).".csv"; // Name of the CSV
                 $csv = $this->dbutil->csv_from_result($paracouDB->query($query));
                 force_download($name, $csv);
             }
@@ -151,13 +166,13 @@ class Main extends CI_Controller {
  
             foreach($filters as $key => $value) {
                 if(isset($get[$value])){
-                    $str = implode(" OR ", $get[$value]);
+                    $str = implode("|", $get[$value]);
                 } else {
                     $str='';
                 }
                 if ($str != '') {
                     $binding = $str;
-                    $like[$key] = "CAST(\"".$value."\" AS TEXT) LIKE '".$binding."'";
+                    $like[$key] = "CAST(\"".$value."\" AS TEXT) SIMILAR TO '".$binding."'";
                 }
             }
             $like = implode(" AND ",$like);
@@ -214,8 +229,6 @@ class Main extends CI_Controller {
                 $cleanPost['password'] = $hashed;
                 unset($cleanPost['passconf']);
                 $userInfo = $this->user_model->updateUserInfo($cleanPost);
-                
-                $hotline = print_r($cleanpost);
 
                 if(!$userInfo){
                     $this->session->set_flashdata('flash_message', "There was a problem updating your record");

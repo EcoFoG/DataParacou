@@ -14,13 +14,13 @@ class User_model extends CI_Model {
     public function insertUser($d)
     {
             $role = isset($d['role']) && ($d['role'] == '1') ? $this->roles[1]: $this->roles[0];
-            $expires = isset($d['expires']) ? $d['expires']: NULL;
+            $expires = (!empty($d['expires']) && isset($d['expires'])) ? $d['expires']: NULL;
             $string = array(
                 'first_name'=>$d['firstname'],
                 'last_name'=>$d['lastname'],
                 'email'=>$d['email'],
                 'expires'=>$expires,
-                'created'=>date('d/m/Y'),
+                'created'=>date('Y/m/d'),
                 'role'=>$role,
                 'status'=>$this->status[0],
                 'request_id'=>$d['request_id']
@@ -32,12 +32,13 @@ class User_model extends CI_Model {
     
     public function deleteUser($id){
         $this->db->delete('users', array('id' => $id));
+        $this->db->delete('tokens', array('user_id' => $id));
     }
 
     public function isDuplicate($email)
     {
-        $this->db->get_where('users', array('email' => $email), 1);
-        return $this->db->affected_rows() > 0 ? TRUE : FALSE;
+        $q = $this->db->get_where('users', array('email' => $email), 1);
+        return $this->db->affected_rows() > 0 ? $q->row() : FALSE;
     }
     
     public function getUserList()
@@ -59,7 +60,6 @@ class User_model extends CI_Model {
         $query = $this->db->insert_string('tokens',$string);
         $this->db->query($query);
         return $token . $user_id;
-
     }
 
     public function isTokenValid($token)
@@ -73,16 +73,7 @@ class User_model extends CI_Model {
 
         if($this->db->affected_rows() > 0){
             $row = $q->row();
-
-            $created = $row->created;
-            $createdTS = strtotime($created);
-            $today = date('Y-m-d');
-            $todayTS = strtotime($today);
-
-            if($createdTS != $todayTS){
-                return false;
-            }
-
+            $this->db->delete('tokens', array('user_id' => $uid));
             $user_info = $this->getUserInfo($row->user_id);
             return $user_info;
 
@@ -108,8 +99,8 @@ class User_model extends CI_Model {
     {
         $data = array(
                'password' => $post['password'],
-               'last_login' => date('d/m/Y h:i:s A'),
-               'status' => $this->status[1]
+               'last_login' => date('Y/m/d h:i:s A'),
+               'status' => $this->status[1],
             );
         $this->db->where('id', $post['user_id']);
         $this->db->update('users', $data);
@@ -117,6 +108,27 @@ class User_model extends CI_Model {
 
         if(!$success){
             error_log('Unable to updateUserInfo('.$post['user_id'].')');
+            return false;
+        }
+
+        $user_info = $this->getUserInfo($post['user_id']);
+        return $user_info;
+    }
+    public function editUserInfo($post)
+    {
+        $expires = (!empty($d['expires']) && isset($d['expires'])) ? $d['expires']: NULL;
+        $data = array(
+               'expires' => $expires,
+               'role' => $post['role'],
+               'first_name' => $post['first_name'],
+               'last_name' => $post['last_name'],
+            );
+        $this->db->where('id', $post['user_id']);
+        $this->db->update('users', $data);
+        $success = $this->db->affected_rows();
+
+        if(!$success){
+            error_log('Unable to editUserInfo('.$post['user_id'].')');
             return false;
         }
 

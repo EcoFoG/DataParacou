@@ -55,6 +55,7 @@ $route['admin/delete_user/(:num)'] = 'admin/delete_user/$1';
 $route['admin/delete_request/(:num)'] = 'admin/delete_request/$1';
 $route['admin/accept_request/(:num)'] = 'admin/accept_request/$1';
 $route['admin/show_request/(:num)'] = 'admin/show_request/$1';
+$route['admin/edit_user/user-(:num)/request-(:num)'] = 'admin/edit_user/$1/$2';
 $route['admin/add/(:num)'] = 'admin/add/$1';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;

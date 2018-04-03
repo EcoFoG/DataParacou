@@ -55,12 +55,3 @@ h5 span {
 .col-lg-offset-4 p {
     margin-bottom:3px;
 }
-
-.tooltip {
-  pointer-events: none;
-}
-
-.annoted-header {
-    text-decoration: none;
-    border-bottom: 1px dotted #000;
-}

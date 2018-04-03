@@ -1,23 +1,19 @@
 <?php
 
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+$tableRelativeFontSize = 80; // In %
 
+// Name of headers
 $config['headers'] = array(
     "Forest",
     "Plot",
     "Subplot",
     "Tree Field number",
-    "Area",
+    "Plot area",
     "Tree id",
     "X Field",
     "Y Field",
-    "X UTM",
-    "Y UTM",
-    "UTM Zone",
+    "X UTM (Zone 22)",
+    "Y UTM (Zone 22)",
     "Latitude",
     "Longitude",
     "Vern name",
@@ -26,7 +22,6 @@ $config['headers'] = array(
     "Status",
     "Measure code",
     "Year",
-    "Measure date",
     "Family",
     "Genus",
     "Specie",
@@ -35,7 +30,7 @@ $config['headers'] = array(
 );
 
 $config['table_template'] = array (
-    'table_open'          => '<table id="guyafor_datatable" class="table table-striped table-bordered" width="100%" style="font-size: 60%;" cellspacing="0">',
+    'table_open'          => "<table id=\"guyafor_datatable\" class=\"table table-responsive table-striped table-bordered\" width=\"100%\" style=\"font-size: $tableRelativeFontSize%;\" cellspacing=\"0\">",
 
     'heading_row_start'   => '<tr>',
     'heading_row_end'     => '</tr>',
@@ -57,12 +52,18 @@ $config['table_template'] = array (
 
 $config['filters'] = array(
     "Plot",
+    "SubPlot",
     "CodeAlive",
     "CensusYear",
     "VernName",
     "Family",
     "Species",
     "Genus"
+);
+
+$config['defaultCircBoundaries'] = array(
+    'circMin' => 10,
+    'circMax' => 150
 );
 
 $config['columns'] = array(
@@ -76,19 +77,43 @@ $config['columns'] = array(
     array('db' => 'Yfield', 'dt' => 7 ),
     array('db' => 'Xutm', 'dt' => 8 ),
     array('db' => 'Yutm', 'dt' => 9 ),
-    array('db' => 'UTMZone', 'dt' => 10 ),
-    array('db' => 'Lat', 'dt' => 11 ),
-    array('db' => 'Lon', 'dt' => 12 ),
-    array('db' => 'VernName', 'dt' => 13 ),
-    array('db' => 'WoodDensity', 'dt' => 14 ),
-    array('db' => 'Circ', 'dt' => 15 ),
-    array('db' => 'CodeAlive', 'dt' => 16 ),
-    array('db' => 'CodeMeas', 'dt' => 17 ),
-    array('db' => 'CensusYear', 'dt' => 18 ),
-    array('db' => 'CensusDate', 'dt' => 19 ),
-    array('db' => 'Family', 'dt' => 20 ),
-    array('db' => 'Genus', 'dt' => 21 ),
-    array('db' => 'Species', 'dt' => 22 ),
-    array('db' => 'BotaSource', 'dt' => 23 ),
-    array('db' => 'BotaCertainty', 'dt' => 24 )
+    array('db' => 'Lat', 'dt' => 10 ),
+    array('db' => 'Lon', 'dt' => 11 ),
+    array('db' => 'VernName', 'dt' => 12 ),
+    array('db' => 'WoodDensity', 'dt' => 13 ),
+    array('db' => 'Circ', 'dt' => 14 ),
+    array('db' => 'CodeAlive', 'dt' => 15 ),
+    array('db' => 'CodeMeas', 'dt' => 16 ),
+    array('db' => 'CensusYear', 'dt' => 17 ),
+    array('db' => 'Family', 'dt' => 18 ),
+    array('db' => 'Genus', 'dt' => 19 ),
+    array('db' => 'Species', 'dt' => 20 ),
+    array('db' => 'BotaSource', 'dt' => 21 ),
+    array('db' => 'BotaCertainty', 'dt' => 22 )
+);
+
+$config["tooltips"] = array(
+    "Forest" => "",
+    "Plot" => "",
+    "Subplot" => "",
+    "Tree Field number" => "",
+    "Plot area" => "",
+    "Tree id" => "",
+    "X Field" => "",
+    "Y Field" => "",
+    "X UTM (Zone 22)" => "",
+    "Y UTM (Zone 22)" => "",
+    "Latitude" => "",
+    "Longitude" => "",
+    "Vern name" => "",
+    "Wood density" => "",
+    "Circumference" => "",
+    "Status" => "",
+    "Measure code" => "",
+    "Year" => "",
+    "Family" => "",
+    "Genus" => "",
+    "Specie" => "",
+    "Botanical source" => "",
+    "Safety index"  => ""
 );

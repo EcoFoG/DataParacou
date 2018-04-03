@@ -3,26 +3,27 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/I:/wamp64/www/SILAT/application/config/config.php</file>
-            <file>file:/I:/wamp64/www/SILAT/application/views/index.html</file>
+            <file>file:/I:/wamp64/www/SILAT/application/views/forgot.php</file>
+            <file>file:/I:/wamp64/www/SILAT/application/views/admin/error.php</file>
+            <file>file:/I:/wamp64/www/SILAT/application/views/admin/accept_request.php</file>
+            <file>file:/I:/wamp64/www/SILAT/application/views/admin/show_request.php</file>
             <file>file:/I:/wamp64/www/SILAT/application/views/admin/header.php</file>
-            <file>file:/I:/wamp64/www/SILAT/application/views/admin/list.php</file>
-            <file>file:/I:/wamp64/www/SILAT/application/libraries/MY_Form_validation.php</file>
+            <file>file:/I:/wamp64/www/SILAT/application/config/routes.php</file>
+            <file>file:/I:/wamp64/www/SILAT/application/views/admin/list_requests.php</file>
+            <file>file:/I:/wamp64/www/SILAT/application/views/reset_password.php</file>
+            <file>file:/I:/wamp64/www/SILAT/application/views/admin/add.php</file>
             <file>file:/I:/wamp64/www/SILAT/application/views/admin/register.php</file>
+            <file>file:/I:/wamp64/www/SILAT/application/views/admin/footer.php</file>
             <file>file:/I:/wamp64/www/SILAT/application/views/index.php</file>
             <file>file:/I:/wamp64/www/SILAT/application/views/login.php</file>
-            <file>file:/I:/wamp64/www/SILAT/application/libraries/PeEmail.php</file>
             <file>file:/I:/wamp64/www/SILAT/application/models/User_model.php</file>
             <file>file:/I:/wamp64/www/SILAT/application/controllers/Admin.php</file>
-            <file>file:/I:/wamp64/www/SILAT/application/config/datatable.php</file>
-            <file>file:/I:/wamp64/www/SILAT/application/config/tooltips.php</file>
+            <file>file:/I:/wamp64/www/SILAT/application/models/Request_model.php</file>
+            <file>file:/I:/wamp64/www/SILAT/application/views/admin/list_users.php</file>
             <file>file:/I:/wamp64/www/SILAT/application/views/header.php</file>
+            <file>file:/I:/wamp64/www/SILAT/application/views/request.php</file>
             <file>file:/I:/wamp64/www/SILAT/public/css/main.css</file>
-            <file>file:/I:/wamp64/www/SILAT/application/config/email.php</file>
             <file>file:/I:/wamp64/www/SILAT/application/controllers/Main.php</file>
-            <file>file:/I:/wamp64/www/SILAT/application/config/pagination.php</file>
-            <file>file:/I:/wamp64/www/SILAT/application/config/database.php</file>
-            <file>file:/I:/wamp64/www/SILAT/application/config/mimes.php</file>
         </group>
     </open-files>
 </project-private>
