@@ -37,8 +37,8 @@
             }?>
         <?php
             if (!isset($requestinfo->accepted)) {
-                echo "<a class=\"btn btn-success\" href= \"".base_url()."admin/accept_request/$id\">Accept request <i class=\"fas fa-check\"></i></a>";
-                echo "<a class=\"btn btn-danger\" href= \"".base_url()."admin/decline_request/$id\" data-confirm=\"Are you sure you want to delete this user and his associed request ?\">Decline request  <i class=\"fas fa-times\"></i></a>";
+                echo "<a class=\"btn btn-success\" href= \"".base_url()."admin/accept_request/$id\">Accept request <i class=\"fas fa-check\"></i></a> ";
+                echo "<a class=\"btn btn-danger\" href= \"".base_url()."admin/decline_request/$id\" data-confirm=\"Are you sure you want to delete this user and his associed request ?\">Decline request  <i class=\"fas fa-times\"></i></a> ";
             } 
             echo form_submit(array('name'=>'apply','value'=>'Apply changes',"class"=>"btn btn-primary"));
         ?>

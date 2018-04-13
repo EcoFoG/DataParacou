@@ -48,7 +48,7 @@ $(document).ready(function() {
             echo "<td>$value->created</td>";
             echo "<td>$expires</td>";
             echo "<td><a href=\"". base_url() ."admin/show_request/$value->request_id\">$value->request_id</a></td>";
-            echo "<td><a class=\"btn-sm btn-primary\" href=\"".base_url()."admin/edit_user/$value->id\">Edit <i class=\"fas fa-edit\"></i></a> <a class=\"btn-sm btn-danger\" href=\"".base_url()."admin/delete_user/$value->id\" data-confirm=\"Are you sure you want to delete this user and his associed request ?\">Delete <i class=\"fas fa-trash\"></i></a>";
+            echo "<td><a class=\"btn-sm btn-primary\" href=\"".base_url()."admin/edit_user/$value->id\">Edit <i class=\"fas fa-edit\"></i></a> <a class=\"btn-sm btn-danger\" href=\"".base_url()."admin/delete_user/$value->id\" data-confirm=\"Are you sure you want to delete this user ?\">Delete <i class=\"fas fa-trash\"></i></a>";
             echo "</tr>";
         }?>
     </tbody>

@@ -1,56 +1,135 @@
 <?php
-    $circMax = !(empty($this->input->get('circMax'))) ? $this->input->get('circMax') : $defaultCircBoundaries['circMax'];
-    $circMin = !(empty($this->input->get('circMin'))) ? $this->input->get('circMin') : $defaultCircBoundaries['circMin'];
+    $circMax = !(empty($this->input->get('circMax'))) ? $this->input->get('circMax') : $defaultCircBoundaries['circMax']; // Opérateur ternaire : http://php.net/manual/fr/language.operators.comparison.php#language.operators.comparison.ternary
+    $circMin = !(empty($this->input->get('circMin'))) ? $this->input->get('circMin') : $defaultCircBoundaries['circMin']; // Si circMin passé dans l'url, l'enregistrer dans la variable $circMin sinon utiliser la valeur de $defaultCircBoundaries (référence fonction index application/controller/main.php)
 ?>
-<script>
+<script type="text/javascript">
     $(document).ready(function() {   
-        <?php 
-            foreach($tooltips as $key=>$value){
-                if ($value) {
-                    echo "\$(\"th:contains('$key')\").attr(\"data-toggle\",\"tooltip\").attr(\"title\",\"$value\")\n";
-                }
-            }
         
-        ?>
+        $('#datatable').after("<div class=\"loader mx-auto my-4\" />"); // Affiche l'animation loader
+        
+        var xhr; // Déclaration de l'objet ajax pour l'utilisation d'abort en cas d'appui sur apply alors que le tableau n'est pas chargé
+        
+        /* Gestion des onglets sur les filtres (Jquery UI : https://jqueryui.com/tabs/) */
         $("#tabs").tabs();
+        
+        /* Crée les input de selection multiple (Select2 : https://select2.org/) */
         $('.multiple').select2({
             closeOnSelect: false
         });
-        $('plots').select2({
-            placeholder: "Select a plot"
-        });
+        /* Animation du slider de choix de la circonférence (Jquery UI : https://jqueryui.com/slider/) */
         $('#slider').slider({
             min: <?php echo $circDBMin ?>,
             max: <?php echo $circDBMax ?>,
             step: 0.01,
             values: [<?php echo $circMin ?>, <?php echo $circMax ?>],
             slide: function(event, ui) {
-                for (var i = 0; i < ui.values.length; ++i) {
+                for (let i = 0; i < ui.values.length; ++i) {
                     $("input.sliderValue[data-index=" + i + "]").val(ui.values[i]);
                 }
             }
         });
-
+        /* Au déplacement du slider, changer la valeur de l'input correspondant */
         $('input.sliderValue').change(function() {
-            var $this = $(this);
+            let $this = $(this);
             $("#slider").slider("values", $this.data("index"), $this.val());
+        });
+        
+        /* Génère une ligne de la table */
+        function drawRow(rowData) {
+            var row = $("<tr />");
+            $("#datatable").append(row);
+            <?php foreach($columns as $columnName){
+                $columnName = $columnName['db'];
+                echo "row.append($(\"<td>\" + rowData.$columnName + \"</td>\"))\n\t\t";
+            } ?>
+        }
+        /* Utilise les données pour générer une table */
+        function createTable(data){
+            var body = $("<tbody />");
+            $("#datatable").append(body);
+            for (let i = 0; i < data.length; i++) {
+                drawRow(data[i]);
+            }
+        }
+        /* Supprime le contenu de la table */
+        function cleanTable() { 
+            $("#datatable tbody").remove();
+        }
+        
+        var circMin, circMax, codeAlive, Plot, SubPlot, CensusYear, VernName, Family, Genus, Species, page, offset; // Variables globales des filtres du document
+        
+        /* Enregistre les filtres selectionnés dans des variables */
+        function getFilters(){
+            circMin = $("#circMin").val();
+            circMax = $("#circMax").val();
+            codeAlive = $("#CodeAlive").select2('data').map(function (obj) { return obj.text; });
+            Plot = $("#Plot").select2('data').map(function (obj) { return obj.text; });
+            SubPlot = $("#SubPlot").select2('data').map(function (obj) { return obj.text; });
+            CensusYear = $("#CensusYear").select2('data').map(function (obj) { return obj.text; });
+            VernName = $("#VernName").select2('data').map(function (obj) { return obj.text; });
+            Family = $("#Family").select2('data').map(function (obj) { return obj.text; });
+            Genus = $("#Genus").select2('data').map(function (obj) { return obj.text; });
+            Species = $("#Species").select2('data').map(function (obj) { return obj.text; });
+        }
+        
+        /* Placement des tooltips sur les headers du tableau */
+        <?php 
+            foreach($headers as $key=>$value){
+                if ($value) {
+                    echo "\$(\"th:contains('$key')\").attr(\"data-toggle\",\"tooltip\").attr(\"title\",\"$value\")\n"; // Attribue les valeurs de /application/config/datatable.php à chaque header
+                }
+            }
+        ?>
+        
+        /* Evènement clic sur save */
+        $("#save").click(function(){
+            alert("<?php echo base_url() ?>main/?" + decodeURIComponent( $("#formFilters").serialize())); // Génère l'URL correspondant aux filtres séléctionnés
+        });
+        /* Evènemenent clic sur apply */
+        $("#apply").click(function(){
+            xhr.abort(); // Abandonne la requête ajax en cours
+            cleanTable(); // Supprime le contenu de la table
+            if (!$(".loader").length) {
+                $('#datatable').after("<div class=\"loader mx-auto my-4\" />"); // Ajoute l'animation de loader si elle n'est pas déjà présente
+            }
+            getFilters(); // Enregistre les filtres selectionnés dans les variables globales
+            xhr = $.ajax({ // Début de la requête ajax http://api.jquery.com/jquery.ajax/
+                url: "<?php echo base_url() ?>main/api_table", // Appelle la page fonction api_table dans application/controller/main.php
+                datatype: "json",
+                data: { circMin : circMin, circMax : circMax, codeAlive : codeAlive, Plot : Plot, SubPlot : SubPlot, CensusYear : CensusYear, VernName : VernName, Family : Family, Genus : Genus, Species : Species, page : page, offset : offset, apply : "apply"} // Passe les paramètres via la méthode get
+            }).done(function(data){ // Evènement données reçues
+                data = JSON.parse(data); // Transforme JSON -> Array javascript
+                $('.loader').remove(); // Supprime l'animation loader
+                createTable(data); // Ajoute les données à la table
+            });
+        });
+        getFilters();
+        xhr = $.ajax({ // Execute la requête ajax à l'ouverture de la page web
+            url: "<?php echo base_url() ?>main/api_table",
+            datatype: "json",
+            data: { circMin : circMin, circMax : circMax, codeAlive : codeAlive, Plot : Plot, SubPlot : SubPlot, CensusYear : CensusYear, VernName : VernName, Family : Family, Genus : Genus, Species : Species, page : page, offset : offset, apply : "apply"}
+        }).done(function(data){
+            data = JSON.parse(data);
+            $('.loader').remove();
+            createTable(data);
         });
     });
 </script>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <a href=<?php echo base_url();?> class="navbar-brand">Paracou-Ex</a>
+  <a href=<?php echo base_url();?> class="navbar-brand">Paracou-Ex</a> <!-- Titre affiché à gauche de la nav -->
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="collapse navbar-collapse" id="navbarText">
     <ul class="navbar-nav mr-auto">
         <li class="nav-item">
-            <a class="nav-link" href=<?php echo "\"".base_url()."public/pdf/Paracou_data_dictionnary.pdf\"";?>>Data dictionnary</a>
+            <a class="nav-link" href=<?php echo "\"".base_url()."public/pdf/Paracou_data_dictionnary.pdf\"";?>>Data dictionnary</a> <!-- Lien vers le data dictionnary -->
+            <!-- Vous pouvez rajouter des liens ici / doc : https://www.w3schools.com/tags/att_a_href.asp -->
         </li>
     </ul>
     <form class="navbar-text form-inline">
         <?php
-            if($role == "admin"){
+        if($role == "admin"){ // Si le role de l'utilisateur est "admin" afficher le lien "Admin" dans la nav
             $url_admin = base_url().'admin/';
             echo "<a class=\"m-3\" href='$url_admin'>Admin</a>";
         } ?>
@@ -60,7 +139,7 @@
 </nav>
 <br>
 <div class="container-fluid"> 
-    <div id="tabs" class="card">
+    <div id="tabs" class="card"><!-- https://getbootstrap.com/docs/4.0/components/card/ -->
             <ul class="nav nav-tabs card-header-tabs">
                 <li class="nav-item">
                   <a class="nav-link" href="#filters">Filters</a>
@@ -70,11 +149,11 @@
                 </li>
             </ul>
             <div class="card-body">
-                <form method="get">
                     <div id="spatial">
                         
                     </div>
                     <div id="filters">
+                        <form id="formFilters" method="get" action="<?php echo base_url().'main/api_table' ?>">
                         <div class="form-group">
                             <div class="row">
                                 <div class="col-lg-4 col-xl-4 col-sm-12 col-md-12">  
@@ -82,23 +161,24 @@
                                 <div class="row">
                                     <div class="col">
                                         <label for="circMin">Min</label>
-                                        <input type="text" class="sliderValue form-control" name="circMin" data-index="0" value="<?php echo $circMin ?>" />
+                                        <input type="text" class="sliderValue form-control" name="circMin" id="circMin" data-index="0" value="<?php echo $circMin ?>" />
                                     </div>
                                     <div class="col">
                                         <label for="circMax">Max</label>
-                                        <input type="text" class="sliderValue form-control" name="circMax" data-index="1" value="<?php echo $circMax ?>" />
+                                        <input type="text" class="sliderValue form-control" name="circMax" id="circMax" data-index="1" value="<?php echo $circMax ?>" />
                                     </div>
                                 </div>
                                 <br>
                                 <div id="slider"></div>
                                 <br>
                                 <label for="CodeAlive[]">Status</label>
-                                <select class="multiple form-control" name="CodeAlive[]" multiple="multiple" style="width:100%;">
+                                <select class="multiple form-control" name="CodeAlive[]" id="CodeAlive" multiple="multiple" style="width:100%;">
                                     <?php
+                                            /* Récupère les options des filtres passés dans l'URL et les affiche en tant qu'options sélectionnés (pour save state) */
                                             if (isset($get["CodeAlive"])) {
                                                 $codeAliveInter = array_intersect($FCodeAlive,$get["CodeAlive"]);
                                             }
-                                        foreach ($FCodeAlive as $key=>$status) {
+                                        foreach ($FCodeAlive as $key=>$status) { // Récupère les options des filtres depuis la base de données (variable data['F'.filters] dans main.php)
                                             if (isset($codeAliveInter[$key]) && $codeAliveInter[$key] == $FCodeAlive[$key]) {
                                                 echo '<option selected="selected">'.$status.'</option>';
                                             } else {
@@ -110,7 +190,7 @@
                                 </div>
                                 <div class="col-lg-4 col-xl-4 col-sm-12 col-md-12">  
                                     <label for="Plot[]">Plots </label>
-                                    <select class="multiple form-control" name="Plot[]" multiple="multiple" style="width:100%;">
+                                    <select class="multiple form-control" name="Plot[]" id="Plot" multiple="multiple" style="width:100%;">
                                         <?php
                                              if (isset($get["Plot"])) {
                                                 $PlotInter = array_intersect($FPlot,$get["Plot"]);
@@ -124,7 +204,7 @@
                                             } ?>
                                     </select>
                                     <label for="SubPlot[]">Subplot </label>
-                                    <select class="multiple form-control" name="SubPlot[]" multiple="multiple" style="width:100%;">
+                                    <select class="multiple form-control" name="SubPlot[]" id="SubPlot" multiple="multiple" style="width:100%;">
                                          <?php
                                             if (isset($get["SubPlot"])) {
                                                 $SubPlotinter = array_intersect($FSubPlot,$get["SubPlot"]);
@@ -138,7 +218,7 @@
                                             }?>
                                     </select>
                                     <label for="CensusYear[]">Census year</label>
-                                    <select class="multiple form-control" name="CensusYear[]" multiple="multiple" style="width:100%;">
+                                    <select class="multiple form-control" name="CensusYear[]" id="CensusYear" multiple="multiple" style="width:100%;">
                                         <?php
                                              if (isset($get["CensusYear"])) {
                                                 $YearInter = array_intersect($FCensusYear,$get["CensusYear"]);
@@ -154,7 +234,7 @@
                                 </div>
                                 <div class="col-md-4 col-xl-4 col-sm-12 col-md-12">
                                     <label for="VernName[]">Vernacular name </label>
-                                    <select class="multiple form-control" name="VernName[]" multiple="multiple" style="width:100%;">
+                                    <select class="multiple form-control" id="VernName" name="VernName[]" multiple="multiple" style="width:100%;">
                                         <?php
                                              if (isset($get["VernName"])) {
                                                 $VernInter = array_intersect($FVernName,$get["VernName"]);
@@ -168,7 +248,7 @@
                                             }?>
                                     </select>
                                     <label for="Family[]">Family </label>
-                                    <select class="multiple form-control" name="Family[]" multiple="multiple" style="width:100%;">
+                                    <select class="multiple form-control" id="Family" name="Family[]" multiple="multiple" style="width:100%;">
                                         <?php
                                              if (isset($get["Family"])) {
                                                 $FamilyInter = array_intersect($FFamily,$get["Family"]);
@@ -182,7 +262,7 @@
                                             }?>
                                     </select>
                                     <label for="Genus[]">Genus </label>
-                                    <select class="multiple form-control" name="Genus[]" multiple="multiple" style="width:100%;">
+                                    <select class="multiple form-control" id="Genus" name="Genus[]" multiple="multiple" style="width:100%;">
                                         <?php
                                              if (isset($get["Genus"])) {
                                                 $GenusInter = array_intersect($FGenus,$get["Genus"]);
@@ -197,7 +277,7 @@
                                     </select>
                                     <br>
                                     <label for="Species[]">Species </label>
-                                    <select class="multiple form-control" name="Species[]" multiple="multiple" style="width:100%;">
+                                    <select class="multiple form-control" id="Species" name="Species[]" multiple="multiple" style="width:100%;">
                                         <?php
                                              if (isset($get["Species"])) {
                                                 $SpeciesInter = array_intersect($FSpecies,$get["Species"]);
@@ -213,19 +293,20 @@
                                     <br>
                                 </div>
                             </div>
-                            <input class="m-2 mx-auto btn" type="submit" name="apply" value="Apply">
-                            <input class="m-2 mx-auto btn" type="submit" name="csv" value="Export to CSV">
+                            <input class="m-2 mx-auto btn" name="csv" type="submit" value="Export to CSV">
                         </div>
+                        </form>
+                        <button class="m-2 mx-auto btn" id="apply">Apply</button>
+                        <button class="m-2 mx-auto btn" id="save">Save state</button>
                     </div>
-                </form>
             </div> 
     </div>
     <br>
     <div class="container">
-        <?php echo "$pagination_links";?>
+        <?php //echo "$pagination_links";?>
     </div>
 </div>
 <?php 
-    $this->table->set_heading($headers);
-    echo $this->table->generate($table); 
+    $this->table->set_heading(array_keys($headers)); // Génère les headers du tableau fournis dans datatable.php
+    echo $this->table->generate();
 ?>

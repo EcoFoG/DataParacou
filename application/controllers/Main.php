@@ -6,15 +6,20 @@ class Main extends CI_Controller {
     public $status;
     public $roles;
 
-    function __construct(){
+    function __construct(){ // Constructeur http://php.net/manual/fr/language.oop5.decon.php
         parent::__construct();
+        
+        // Appelle les modèles depuis application/models/
         $this->load->model('User_model', 'user_model', TRUE);
         $this->load->model('Request_model', 'request_model', TRUE);
-
-        $this->load->library('form_validation');
-        $this->form_validation->set_error_delimiters('<div class="error">', '</div>');
+        
+        // Appelle les items "roles" et "status" du fichier application/config/config.php
         $this->status = $this->config->item('status');
         $this->roles = $this->config->item('roles');
+
+        // Appelle les librairies 
+        $this->load->library('form_validation');
+        $this->form_validation->set_error_delimiters('<div class="error">', '</div>');
         $this->load->helper('form');
         $this->load->helper('url');
         $this->load->helper('download');
@@ -27,14 +32,15 @@ class Main extends CI_Controller {
         $this->load->dbutil();
 
     }
-    // Redirections, return role of user connected
+    // Redirections
     protected function checkLogin(){
-        if($this->input->post("admin")){
+        if($this->input->post("admin")){ // Si lien "Admin" pressé redirige vers le panel admin
             redirect(base_url().'admin');
         }
-        if($this->input->post("disconnect")){
+        if($this->input->post("disconnect")){ // Si lien "Logout" pressé redirige vers la fonction logout()
             redirect(base_url().'main/logout/');
         }
+        // Redirection vers login() si la session n'existe pas ou si le comtpe est expiré 
         if(empty($this->session->userdata['email']) || ((isset($this->session->userdata['expires'])) && (time() > strtotime(str_replace('/', '-', $this->session->userdata['expires']))))){
             redirect(base_url().'main/login/');
         }
@@ -47,28 +53,28 @@ class Main extends CI_Controller {
         $this->config->load("datatable");
         $tmpl = $this->config->item("table_template");
         $data['headers'] = $this->config->item("headers");
+        $data['columns'] = $this->config->item("columns");
         $data['tooltips'] = $this->config->item("tooltips");
         $data['defaultCircBoundaries'] = $this->config->item("defaultCircBoundaries");
         $filters = $this->config->item("filters");
         $columns = $this->config->item("columns");
         $this->table->set_template($tmpl); // Apply template to the generated table
     }
-    
-    private function getFilters(&$data, $filters, $paracouDB){
-            foreach ($filters as $value) {
-                $data['F'.$value] = $this->cache->get('F'.$value);
-                if (!($data['F'.$value])) {
-                    $temp = $paracouDB->query("select \"$value\" from taparacou group by \"$value\" order by \"$value\"")->result_array();
+    private function getFilters(&$data, $filters, $paracouDB){ 
+            foreach ($filters as $value) { // Pour chaque filtre dans application/config/datatable.php
+                $data['F'.$value] = $this->cache->get('F'.$value); // Cherche dans le cache si les niveaux de filtres ne sont pas déjà enregistrés
+                if (!($data['F'.$value])) { // Si ils n'existent pas
+                    $temp = $paracouDB->query("select \"$value\" from taparacou group by \"$value\" order by \"$value\"")->result_array(); // Prend les niveaux dans la base de données
                     foreach($temp as $key2=>$value2) {
                         $temp[$key2] = $temp[$key2][$value];
                     }
-                    $data['F'.$value] = $temp;
-                    $this->cache->save('F'.$value, $data['F'.$value], 86400);
+                    $data['F'.$value] = $temp; // Enregistre dans un tableau avec la clé Ffiltre (FCensusYear, FGenus ...)
+                    $this->cache->save('F'.$value, $data['F'.$value], 0); // Enregistre dans le cache
                 }
             }
             $data['filters'] = $filters;
     }
-    private function getCircBoundaries(&$data, $paracouDB){
+    private function getCircBoundaries(&$data, $paracouDB){ 
             $circDBMin = $this->cache->get('circDBMin');
             $circDBMax = $this->cache->get('circDBMin');
             if (!$circDBMin || !$circDBMax) {
@@ -84,10 +90,13 @@ class Main extends CI_Controller {
             }
             
     }
+    
+    /* Retourne une chaine de caractère $limit qui servira pour la requête pour la pagination et le nombre de lignes affiché à l'écran */
     private function limit($offset, $n_limit){
         $limit = " LIMIT $n_limit OFFSET $offset";
         return $limit;
     }
+    /* Crée les liens de pagination à partir du nombre de lignes et du nombre de ligne à afficher */
     private function paginate(&$data, $total_rows, $n_limit){
         $this->config->load("pagination");
         $conf_pagination = $this->config->item("pagination");
@@ -98,32 +107,46 @@ class Main extends CI_Controller {
         $data["pagination_links"] = $this->pagination->create_links();
     }
     
-    public function index()
-	{
-            $data['role'] = $this->checkLogin();
+    public function index(){
+        $filters = $columns = $data = array();
+
+        $data['role'] = $this->checkLogin();
+
+        #### get GET method variables ####
+        $get = $this->input->get(NULL, FALSE);
+
+        $data["get"] = $get;
+
+        #### Configuration de la base de données dans application/config/database.php ####
+        $paracouDB = $this->load->database('paracou', TRUE);
+        $this->configTable($data, $filters, $columns);
+
+        #### Get levels of filters in the databases ####
+        $this->getFilters($data, $filters, $paracouDB);
+
+        #### Get Circ boundaries in the database ####
+        $this->getCircBoundaries($data,$paracouDB);
+
+        #### Views ####
+        $this->load->view('header');
+        $this->load->view('index', $data);
+        $this->load->view('footer');
+    }
+        
+        public function api_table(){
             
-            #### get GET method variables ####
+            $this->checkLogin();
+            
             $get = $this->input->get(NULL, FALSE);
-            $data["get"] = $get;
             
             $paracouDB = $this->load->database('paracou', TRUE);
-            $filters = $columns = array();
-            $this->configTable($data, $filters, $columns);
             
-            #### Get levels of filters in the databases ####
-            $this->getFilters($data, $filters, $paracouDB);
+            $filters = $columns = $data = array();
+            $this->configTable($data, $filters, $columns);
             
             #### Set default circMax and circMin ####
             $circMax = isset($get['circMax']) ? $get['circMax'] : $data['defaultCircBoundaries']['circMax'];
             $circMin = isset($get['circMin']) ? $get['circMin'] : $data['defaultCircBoundaries']['circMin'];
-            
-            #### Get Circ boundaries in the database ####
-            $this->getCircBoundaries($data,$paracouDB);
-            
-            #### Create limit string for the query ####
-            $offset = isset($get["page"]) ? $get["page"] : 1;
-            $n_limit = isset($get['limit']) ? $get['limit'] : 50;
-            $limit = $this->limit($offset,$n_limit);
             
             #### Create like string for the query ####
             $flag = count($filters);
@@ -131,13 +154,18 @@ class Main extends CI_Controller {
                $flag = (isset($get[$value])) ? $flag-1: $flag;
             }
             $like = (count($filters) > $flag) ? $this->like($filters,$get) : ''; // Empty chain in $like if no filter is select
-            
+
             #### Query ####
-            $query =   "SELECT \"".implode("\", \"", $this->pluck($columns, 'db'))."\" "
+            $query =   "SELECT \"".implode("\", \"", $this->pluck($columns, 'db'))."\" " // implode : http://php.net/manual/fr/function.implode.php
               . "FROM taparacou "
               . "WHERE \"Circ\" BETWEEN $circMin AND $circMax "
               . "$like "
               . "ORDER BY \"Plot\",\"SubPlot\",\"TreeFieldNum\",\"CensusYear\"";
+            
+            #### Create limit string for the query ####
+            $offset = isset($get["page"]) ? $get["page"] : 1;
+            $n_limit = isset($get['limit']) ? $get['limit'] : 50;
+            $limit = $this->limit($offset,$n_limit);
             
             #### Generate the csv ####
             if(isset($get["csv"])){
@@ -145,22 +173,115 @@ class Main extends CI_Controller {
                 $name = "Paracou".mdate("%Y%m%d",$time).".csv"; // Name of the CSV
                 $csv = $this->dbutil->csv_from_result($paracouDB->query($query));
                 force_download($name, $csv);
+            #### Generate the table ####
+            } else {
+                $total_rows = $paracouDB->query($query)->num_rows(); // Getting the number of rows for pagination
+                $query .= "$limit" ;
+                echo json_encode($paracouDB->query($query)->result_array());
+            }
+        }
+        
+        public function api_filters()
+	{
+            $this->checkLogin();
+            
+            $get = $this->input->get();
+            $cache['VernNamesSelected'] = $this->cache->get('FamilyGenusSpeciesByVernName');
+            $cache['FamiliesSelected'] = $this->cache->get('GenusSpeciesByFamily');
+            $cache['GenusSelected'] = $this->cache->get('SpeciesFamilyByGenus');
+            $cache['SpeciesSelected'] = $this->cache->get('GenusFamilyBySpecies');
+            
+            
+            if (isset($get['VernNamesSelected'])) {
+                foreach($get['VernNamesSelected'] as $value){
+                        $VernNamesSelected[$value] = $cache['VernNamesSelected'][$value];
+                }
+                $temp['VernNamesSelected']['Family'] = call_user_func_array('array_merge',array_column($VernNamesSelected,'Family'));
+                $temp['VernNamesSelected']['Genus'] = call_user_func_array('array_merge',array_column($VernNamesSelected,'Genus'));
+                $temp['VernNamesSelected']['Species'] = call_user_func_array('array_merge',array_column($VernNamesSelected,'Species'));
             }
             
-            #### Generate the table ####
-            $total_rows = $paracouDB->query($query)->num_rows(); // Getting the number of rows for pagination
-            $query .= "$limit" ;
-            $data['table'] = $paracouDB->query($query)->result_array();
+            if (isset($get['FamiliesSelected'])) {
+                foreach($get['FamiliesSelected'] as $value){
+                        $FamiliesSelected[$value] = $cache['FamiliesSelected'][$value];
+                }
+                $temp['FamiliesSelected']['Genus'] = call_user_func_array('array_merge',array_column($FamiliesSelected,'Genus'));
+                $temp['FamiliesSelected']['Species'] = call_user_func_array('array_merge',array_column($FamiliesSelected,'Species'));
+            }
+            if (isset($get['GenusSelected'])) {
+                foreach($get['GenusSelected'] as $value){
+                        $GenusSelected[$value] = $cache['GenusSelected'][$value];
+                }
+                $temp['GenusSelected']['Family'] = call_user_func_array('array_merge',array_column($GenusSelected,'Family'));
+                $temp['GenusSelected']['Species'] = call_user_func_array('array_merge',array_column($GenusSelected,'Species'));
+            }
+            if (isset($get['SpeciesSelected'])) {
+                foreach($get['SpeciesSelected'] as $value){
+                        $SpeciesSelected[$value] = $cache['SpeciesSelected'][$value];
+                }
+                $temp['SpeciesSelected']['Family'] = call_user_func_array('array_merge',array_column($SpeciesSelected,'Family'));
+                $temp['SpeciesSelected']['Genus'] = call_user_func_array('array_merge',array_column($SpeciesSelected,'Genus'));
+            }
             
-            #### Pagination ####
-            $this->paginate($data, $total_rows, $n_limit);
+//            How to intersect array only if they exists
+//            https://stackoverflow.com/questions/49694616/how-to-intersect-array-only-if-they-exists/49696487#49696487
             
-            #### Views ####
-            $this->load->view('header');
-            $this->load->view('index', $data);
-            $this->load->view('footer');
-	}
+            $output['Family'] = (isset($temp['VernNamesSelected']['Family']) && isset($temp['GenusSelected']['Family']) && isset($temp['SpeciesSelected']['Family']) ? array_intersect($temp['VernNamesSelected']['Family'],$temp['GenusSelected']['Family'],$temp['SpeciesSelected']['Family']) :
+                (isset($temp['VernNamesSelected']['Family']) && isset($temp['GenusSelected']['Family']) && !isset($temp['SpeciesSelected']['Family']) ? array_intersect($temp['VernNamesSelected']['Family'],$temp['GenusSelected']['Family']) :
+                (isset($temp['VernNamesSelected']['Family']) && !isset($temp['GenusSelected']['Family']) && isset($temp['SpeciesSelected']['Family']) ? array_intersect($temp['VernNamesSelected']['Family'],$temp['SpeciesSelected']['Family']) :
+                (!isset($temp['VernNamesSelected']['Family']) && isset($temp['GenusSelected']['Family']) && isset($temp['SpeciesSelected']['Family']) ? array_intersect($temp['GenusSelected']['Family'],$temp['SpeciesSelected']['Family']) :
+                (isset($temp['VernNamesSelected']['Family']) && !isset($temp['GenusSelected']['Family']) && !isset($temp['SpeciesSelected']['Family']) ? $temp['VernNamesSelected']['Family'] :
+                (!isset($temp['VernNamesSelected']['Family']) && isset($temp['GenusSelected']['Family']) && !isset($temp['SpeciesSelected']['Family']) ? $temp['GenusSelected']['Family'] :
+                (!isset($temp['VernNamesSelected']['Family']) && !isset($temp['GenusSelected']['Family']) && isset($temp['SpeciesSelected']['Family']) ? $temp['SpeciesSelected']['Family'] :
+                NULL)))))));
+            
+            $output['Genus'] = (isset($temp['VernNamesSelected']['Genus']) && isset($temp['GenusSelected']['Genus']) && isset($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'],$temp['GenusSelected']['Genus'],$temp['SpeciesSelected']['Genus']) :
+                (isset($temp['VernNamesSelected']['Genus']) && isset($temp['GenusSelected']['Genus']) && !isset($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'],$temp['GenusSelected']['Genus']) :
+                (isset($temp['VernNamesSelected']['Genus']) && !isset($temp['GenusSelected']['Genus']) && isset($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'],$temp['SpeciesSelected']['Genus']) :
+                (!isset($temp['VernNamesSelected']['Genus']) && isset($temp['GenusSelected']['Genus']) && isset($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['GenusSelected']['Genus'],$temp['SpeciesSelected']['Genus']) :
+                (isset($temp['VernNamesSelected']['Genus']) && !isset($temp['GenusSelected']['Genus']) && !isset($temp['SpeciesSelected']['Genus']) ? $temp['VernNamesSelected']['Genus'] :
+                (!isset($temp['VernNamesSelected']['Genus']) && isset($temp['GenusSelected']['Genus']) && !isset($temp['SpeciesSelected']['Genus']) ? $temp['GenusSelected']['Genus'] :
+                (!isset($temp['VernNamesSelected']['Genus']) && !isset($temp['GenusSelected']['Genus']) && isset($temp['SpeciesSelected']['Genus']) ? $temp['SpeciesSelected']['Genus'] :
+                NULL)))))));
+            
+            $output['Species'] = (isset($temp['VernNamesSelected']['Species']) && isset($temp['GenusSelected']['Species']) && isset($temp['SpeciesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'],$temp['GenusSelected']['Species'],$temp['SpeciesSelected']['Species']) :
+                (isset($temp['VernNamesSelected']['Species']) && isset($temp['GenusSelected']['Species']) && !isset($temp['SpeciesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'],$temp['GenusSelected']['Species']) :
+                (isset($temp['VernNamesSelected']['Species']) && !isset($temp['GenusSelected']['Species']) && isset($temp['SpeciesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'],$temp['SpeciesSelected']['Species']) :
+                (!isset($temp['VernNamesSelected']['Species']) && isset($temp['GenusSelected']['Species']) && isset($temp['SpeciesSelected']['Species']) ? array_intersect($temp['GenusSelected']['Species'],$temp['SpeciesSelected']['Species']) :
+                (isset($temp['VernNamesSelected']['Species']) && !isset($temp['GenusSelected']['Species']) && !isset($temp['SpeciesSelected']['Species']) ? $temp['VernNamesSelected']['Species'] :
+                (!isset($temp['VernNamesSelected']['Species']) && isset($temp['GenusSelected']['Species']) && !isset($temp['SpeciesSelected']['Species']) ? $temp['GenusSelected']['Species'] :
+                (!isset($temp['VernNamesSelected']['Species']) && !isset($temp['GenusSelected']['Species']) && isset($temp['SpeciesSelected']['Species']) ? $temp['SpeciesSelected']['Species'] :
+                NULL)))))));
+                
+                $output['VernName'] = $this->cache->get('FVernName');
+                $output['Family'] = $this->cache->get('FFamily');
+                $output['Genus'] = $this->cache->get('FGenus');
+                $output['Species'] = $this->cache->get('FSpecies');
+                
+                if(!empty($output['VernName'])){
+                    foreach($output['VernName'] as $key2=>$value2){
+                        $output['VernName'][$key2] = array('id' => $key2 , 'text' => $value2);
+                    }
+                }
+                if(!empty($output['Family'])){
+                    foreach($output['Family'] as $key2=>$value2){
+                        $output['Family'][$key2] = array('id' => $key2 , 'text' => $value2);
+                    }
+                }
+                if(!empty($output['Genus'])){
+                    foreach($output['Genus'] as $key2=>$value2){
+                        $output['Genus'][$key2] = array('id' => $key2 , 'text' => $value2);
+                    }
+                }
+                if(!empty($output['Species'])){
+                    foreach($output['Species'] as $key2=>$value2){
+                        $output['Species'][$key2] = array('id' => $key2 , 'text' => $value2);
+                    }
+                }
+                echo json_encode($output);
+        }
         
+        #### Génère la chaine de caractère $like pour le filtrage ####
         protected function like($filters, $get)
         {
  

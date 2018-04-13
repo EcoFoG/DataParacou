@@ -16,7 +16,7 @@ class PeEmail {
     protected $CI;
     
     function __construct(){
-            $this->CI =& get_instance();
+            $this->CI =& CI_Controller::get_instance();
             $this->CI->load->library('email');
             $this->CI->config->load("email");
         }

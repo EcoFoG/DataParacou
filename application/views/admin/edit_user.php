@@ -2,13 +2,13 @@
 $(function() {
     $('input[id="expires"]').daterangepicker({
         locale: {
-            format: 'DD/MM/YYYY'
+            format: 'YYYY/MM/DD'
         },
         singleDatePicker: true,
         showDropdowns: true,
         autoUpdateInput: false
     }, function(chosen_date) {
-        $('input[id="expires"]').val(chosen_date.format('DD/MM/YYYY'));
+        $('input[id="expires"]').val(chosen_date.format('YYYY/MM/DD'));
     });  
 });
 </script>
@@ -20,8 +20,8 @@ $(function() {
                 $fattr = array('id' => 'edit_user');
                 echo form_open("",$fattr); ?>
             <?php
-            $expires = $expires ?? $userinfo->expires;
-            $first_name = $first_name ?? $userinfo->first_name;
+            $expires = $expires ?? $userinfo->expires ?? ''; // https://stackoverflow.com/questions/34571330/php-ternary-operator-vs-null-coalescing-operator/34571460
+            $first_name = $first_name ?? $userinfo->first_name; // Coalese operator
             $last_name = $last_name ?? $userinfo->last_name;
             
             foreach($userinfo as $key=>$value){
@@ -43,7 +43,7 @@ $(function() {
                             break;
                         case "role":
                             echo form_label(humanize($key),"$key");
-                            echo form_dropdown($key, array('user'=>'user','admin'=>'admin'), set_value("$key",$value), array('id'=> "$key", 'class'=>'form-control'));
+                            echo form_dropdown($key, array('user'=>'user','admin'=>'admin'), set_value("$key",$value), array('id'=> "$key", 'class'=>'form-control p-1'));
                             break;
                         default:
                             echo form_label(humanize($key),"$key");

@@ -73,7 +73,6 @@ class User_model extends CI_Model {
 
         if($this->db->affected_rows() > 0){
             $row = $q->row();
-            $this->db->delete('tokens', array('user_id' => $uid));
             $user_info = $this->getUserInfo($row->user_id);
             return $user_info;
 
@@ -116,13 +115,16 @@ class User_model extends CI_Model {
     }
     public function editUserInfo($post)
     {
-        $expires = (!empty($d['expires']) && isset($d['expires'])) ? $d['expires']: NULL;
+        $expires = isset($post['expires']) && !empty($post['expires']) ? $post['expires']: NULL;
         $data = array(
                'expires' => $expires,
                'role' => $post['role'],
                'first_name' => $post['first_name'],
                'last_name' => $post['last_name'],
             );
+        if (isset($post['request_id']) && !empty($post['request_id'])) {
+            $data['request_id'] = $post['request_id'];
+        }
         $this->db->where('id', $post['user_id']);
         $this->db->update('users', $data);
         $success = $this->db->affected_rows();

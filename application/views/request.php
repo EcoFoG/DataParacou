@@ -6,13 +6,13 @@
         });
         $('#timeline').daterangepicker({
             locale: {
-                format: 'DD/MM/YYYY'
+                format: 'YYYY/MM/DD'
             },
             singleDatePicker: true,
             showDropdowns: true,
             autoUpdateInput: false
         }, function(chosen_date) {
-            $('#timeline').val(chosen_date.format('DD/MM/YYYY'));
+            $('#timeline').val(chosen_date.format('YYYY/MM/DD'));
         });  
         
     });

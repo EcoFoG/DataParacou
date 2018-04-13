@@ -46,12 +46,12 @@ class Admin extends CI_Controller {
                 $data["email"] = $requestinfo->email;
                 $data["firstname"] = $requestinfo->firstname;
                 $data["lastname"] = $requestinfo->lastname;
-                $data["expires"] = $requestinfo->expires;
+                $data["expires"] = $requestinfo->timeline;
             } else {
                 $data["email"] = NULL;
                 $data["firstname"] = NULL;
                 $data["lastname"] = NULL;
-                $data["expires"] = date('d/m/Y', strtotime('+1 months')); 
+                $data["expires"] = date('Y/m/d', strtotime('+1 months')); 
             }
             $this->form_validation->set_rules('firstname', 'First Name', 'required');
             $this->form_validation->set_rules('lastname', 'Last Name', 'required');
@@ -64,8 +64,8 @@ class Admin extends CI_Controller {
                 $this->load->view('admin/footer');
             }else{
                 if($this->user_model->isDuplicate($this->input->post('email'))){
-                    $this->session->set_flashdata('flash_message', 'User email already exists');
-                    redirect(base_url().'admin');
+                    $this->session->set_flashdata('error_message', 'User email already exists');
+                    redirect(base_url().'admin/list_users');
                 }else{
                     $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
                     $clean["request_id"] = isset($idrequest) ? $idrequest : NULL;
@@ -139,29 +139,20 @@ class Admin extends CI_Controller {
     public function accept_request($id){
         $this->checkRights();
         $requestinfo = $this->request_model->getRequestInfo($id);
+        $user_duplicated = $this->user_model->isDuplicate($requestinfo->email);
         if (($requestinfo) && !isset($requestinfo->accepted)) {
-            
-            $this->form_validation->set_rules('specific_conditions', 'Specific conditions', 'max_length[1024]');
-
-            if ($this->form_validation->run() == FALSE) {
-                $data['request_id'] = $id;
-                $this->load->view('admin/header');
-                $this->load->view('admin/accept_request',$data);
-                $this->load->view('admin/footer');
-            } else {
-                if($user_id = $this->user_model->isDuplicate($this->input->post('email'))){
-                    $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
-                    $clean["id"] = $id;
-                    $clean["accepted"] = date('Y/m/d');
-                    $this->request_model->updateRequestInfo($clean);
-                    redirect(base_url()."admin/edit_user/user-$user_id/request-$id");
-                }
+            if($user_duplicated){
                 $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
                 $clean["id"] = $id;
                 $clean["accepted"] = date('Y/m/d');
                 $this->request_model->updateRequestInfo($clean);
-                redirect(base_url()."admin/add/$id");
+                redirect(base_url()."admin/edit_user/user-$user_duplicated->id/request-$id");
             }
+            $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
+            $clean["id"] = $id;
+            $clean["accepted"] = date('Y/m/d');
+            $this->request_model->updateRequestInfo($clean);
+            redirect(base_url()."admin/add/$id");
         } else if (isset($requestinfo->accepted)) {
             $this->session->set_flashdata('error_message',"The request n°$id is already accepted");
             redirect(base_url().'admin/list_requests/');
@@ -209,23 +200,32 @@ class Admin extends CI_Controller {
             $data["first_name"] = $requestinfo->firstname;
             $data["last_name"] = $requestinfo->lastname;
             $data["expires"] = $requestinfo->timeline;
-        }
+        } 
         $data["id"] = $id;
         if ($userinfo) {
             $data['userinfo'] = $userinfo;
-            if ($this->input->post('apply')) {
+            
+            $this->form_validation->set_rules('first_name', 'First Name', 'required');
+            $this->form_validation->set_rules('last_name', 'Last Name', 'required');
+            $this->form_validation->set_rules('expires', 'Expires', 'valid_date');
+            
+            if ($this->form_validation->run() != FALSE) {
                 $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
                 $clean['user_id'] = $id;
+                $clean['request_id'] = $request_id;
                 $this->user_model->editUserInfo($clean);
                 redirect(base_url().'admin/list_users/');
+                
+            } else {
+                $this->load->view('admin/header');
+                $this->load->view('admin/edit_user', $data);
+                $this->load->view('admin/footer');
             }
         } else {
             $this->session->set_flashdata('error_message',"The user n°$id doesn't exist");
             redirect(base_url().'admin/list_users/');
         }
-        $this->load->view('admin/header');
-        $this->load->view('admin/edit_user', $data);
-        $this->load->view('admin/footer');
+
     }
     
     public function list_requests(){

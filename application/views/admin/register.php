@@ -2,13 +2,13 @@
 $(function() {
     $('input[id="expires"]').daterangepicker({
         locale: {
-            format: 'DD/MM/YYYY'
+            format: 'YYYY/MM/DD'
         },
         singleDatePicker: true,
         showDropdowns: true,
         autoUpdateInput: false
     }, function(chosen_date) {
-        $('input[id="expires"]').val(chosen_date.format('DD/MM/YYYY'));
+        $('input[id="expires"]').val(chosen_date.format('YYYY/MM/DD'));
     });  
 });
 </script>
@@ -41,7 +41,7 @@ $(function() {
             </div>
             <div class="form-group">
                 <?php echo form_label("Role",'role');?>
-                <?php echo form_dropdown('role',array('user','admin'),'user',array( 'id'=> 'role', 'class'=>'form-control' )); ?>
+                <?php echo form_dropdown('role',array('user','admin'),'user',array( 'id'=> 'role', 'class'=>'form-control p-1' )); ?>
                 <?php echo form_error('role');?>
             </div>
             <?php echo form_submit(array('value'=>'Add user', 'class'=>'btn btn-lg btn-primary btn-block')); ?>
