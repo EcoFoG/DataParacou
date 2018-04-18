@@ -2,16 +2,89 @@
     $circMax = !(empty($this->input->get('circMax'))) ? $this->input->get('circMax') : $defaultCircBoundaries['circMax']; // Opérateur ternaire : http://php.net/manual/fr/language.operators.comparison.php#language.operators.comparison.ternary
     $circMin = !(empty($this->input->get('circMin'))) ? $this->input->get('circMin') : $defaultCircBoundaries['circMin']; // Si circMin passé dans l'url, l'enregistrer dans la variable $circMin sinon utiliser la valeur de $defaultCircBoundaries (référence fonction index application/controller/main.php)
 ?>
+<script type="text/javascript" src="<?php echo base_url() ?>public/js/filterAutocomplete.js"></script>
 <script type="text/javascript">
-    $(document).ready(function() {   
-        
+    $(document).ready(function() {
+
+      $('.multiple').on('select2:close', function (e){
+                  var VernNamesObj = $("#VernName").select2('data');
+                  var VernNamesSelected = VernNamesObj.map(function (obj) {
+                      return obj.text;
+                  });
+                  var FamiliesObj = $("#Family").select2('data');
+                  var FamiliesSelected = FamiliesObj.map(function (obj) {
+                      return obj.text;
+                  });
+                  var GenusObj = $("#Genus").select2('data');
+                  var GenusSelected = GenusObj.map(function (obj) {
+                      return obj.text;
+                  });
+                  var SpeciesObj = $("#Species").select2('data');
+                  var SpeciesSelected = SpeciesObj.map(function (obj) {
+                      return obj.text;
+                  });
+
+                  $.ajax({
+                      url: "<?php echo base_url()?>main/api_filters",
+                      data: {VernNamesSelected : VernNamesSelected, FamiliesSelected : FamiliesSelected, GenusSelected : GenusSelected, SpeciesSelected : SpeciesSelected },
+                      datatype: 'json',
+                      async: true
+                  }).done(function(dataajax){
+                      // Faire une union entre array données selectionnées et array retour des filtres correspondants
+                      dataajax = JSON.parse(dataajax);
+
+                      var VernNamesObj = $("#VernName").select2('data');
+                      var FamiliesObj = $("#Family").select2('data');
+                      var GenusObj = $("#Genus").select2('data');
+                      var SpeciesObj = $("#Species").select2('data');
+
+                      console.log(dataajax);
+
+                      let mergedVernNames = Object.assign(dataajax.VernName, VernNamesObj);
+                      let mergedFamily = Object.assign(dataajax.Family, FamiliesObj);
+                      let mergedGenus = Object.assign(dataajax.Genus, GenusObj);
+                      let mergedSpecies = Object.assign(dataajax.Species, SpeciesObj);
+
+                      console.log("Families Obj : ");
+                      console.log(FamiliesObj);
+
+
+                      console.log("merged Family : ");
+                      console.log(mergedFamily);
+
+
+                      if (dataajax) {
+                          $("#VernName").html("");
+                          $('#VernName').select2({
+                              closeOnSelect: false,
+                              data : mergedVernNames
+                          });
+                          $("#Family").html("");
+                          $('#Family').select2({
+                              closeOnSelect: false,
+                              data : mergedFamily
+                          });
+                          $("#Genus").html("");
+                          $('#Genus').select2({
+                              closeOnSelect: false,
+                              data : mergedGenus
+                          });
+                          $("#Species").html("");
+                          $('#Species').select2({
+                              closeOnSelect: false,
+                              data : mergedSpecies
+                          });
+                      };
+                  });
+              });
+
         $('#datatable').after("<div class=\"loader mx-auto my-4\" />"); // Affiche l'animation loader
-        
+
         var xhr; // Déclaration de l'objet ajax pour l'utilisation d'abort en cas d'appui sur apply alors que le tableau n'est pas chargé
-        
+
         /* Gestion des onglets sur les filtres (Jquery UI : https://jqueryui.com/tabs/) */
         $("#tabs").tabs();
-        
+
         /* Crée les input de selection multiple (Select2 : https://select2.org/) */
         $('.multiple').select2({
             closeOnSelect: false
@@ -33,7 +106,7 @@
             let $this = $(this);
             $("#slider").slider("values", $this.data("index"), $this.val());
         });
-        
+
         /* Génère une ligne de la table */
         function drawRow(rowData) {
             var row = $("<tr />");
@@ -52,12 +125,12 @@
             }
         }
         /* Supprime le contenu de la table */
-        function cleanTable() { 
+        function cleanTable() {
             $("#datatable tbody").remove();
         }
-        
+
         var circMin, circMax, codeAlive, Plot, SubPlot, CensusYear, VernName, Family, Genus, Species, page, offset; // Variables globales des filtres du document
-        
+
         /* Enregistre les filtres selectionnés dans des variables */
         function getFilters(){
             circMin = $("#circMin").val();
@@ -71,16 +144,16 @@
             Genus = $("#Genus").select2('data').map(function (obj) { return obj.text; });
             Species = $("#Species").select2('data').map(function (obj) { return obj.text; });
         }
-        
+
         /* Placement des tooltips sur les headers du tableau */
-        <?php 
+        <?php
             foreach($headers as $key=>$value){
                 if ($value) {
-                    echo "\$(\"th:contains('$key')\").attr(\"data-toggle\",\"tooltip\").attr(\"title\",\"$value\")\n"; // Attribue les valeurs de /application/config/datatable.php à chaque header
+                    echo "\$(\"th:contains('$key')\").attr(\"data-toggle\",\"tooltip\").attr(\"title\",\"$value\").append(\"<div class='annoted-header'>\");\n"; // Attribue les valeurs de /application/config/datatable.php à chaque header
                 }
             }
         ?>
-        
+
         /* Evènement clic sur save */
         $("#save").click(function(){
             alert("<?php echo base_url() ?>main/?" + decodeURIComponent( $("#formFilters").serialize())); // Génère l'URL correspondant aux filtres séléctionnés
@@ -99,6 +172,7 @@
                 data: { circMin : circMin, circMax : circMax, codeAlive : codeAlive, Plot : Plot, SubPlot : SubPlot, CensusYear : CensusYear, VernName : VernName, Family : Family, Genus : Genus, Species : Species, page : page, offset : offset, apply : "apply"} // Passe les paramètres via la méthode get
             }).done(function(data){ // Evènement données reçues
                 data = JSON.parse(data); // Transforme JSON -> Array javascript
+                data = data.table; // Garde uniquement la partie table
                 $('.loader').remove(); // Supprime l'animation loader
                 createTable(data); // Ajoute les données à la table
             });
@@ -110,9 +184,11 @@
             data: { circMin : circMin, circMax : circMax, codeAlive : codeAlive, Plot : Plot, SubPlot : SubPlot, CensusYear : CensusYear, VernName : VernName, Family : Family, Genus : Genus, Species : Species, page : page, offset : offset, apply : "apply"}
         }).done(function(data){
             data = JSON.parse(data);
+            data = data.table; // Garde uniquement la partie table
             $('.loader').remove();
             createTable(data);
         });
+
     });
 </script>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -138,7 +214,7 @@
   </div>
 </nav>
 <br>
-<div class="container-fluid"> 
+<div class="container-fluid">
     <div id="tabs" class="card"><!-- https://getbootstrap.com/docs/4.0/components/card/ -->
             <ul class="nav nav-tabs card-header-tabs">
                 <li class="nav-item">
@@ -150,13 +226,13 @@
             </ul>
             <div class="card-body">
                     <div id="spatial">
-                        
+
                     </div>
                     <div id="filters">
                         <form id="formFilters" method="get" action="<?php echo base_url().'main/api_table' ?>">
                         <div class="form-group">
                             <div class="row">
-                                <div class="col-lg-4 col-xl-4 col-sm-12 col-md-12">  
+                                <div class="col-lg-4 col-xl-4 col-sm-12 col-md-12">
                                 <label>Circumference</label><br>
                                 <div class="row">
                                     <div class="col">
@@ -185,10 +261,10 @@
                                                 echo '<option>'.$status.'</option>';
                                             }
 
-                                        } ?>                    
+                                        } ?>
                                 </select>
                                 </div>
-                                <div class="col-lg-4 col-xl-4 col-sm-12 col-md-12">  
+                                <div class="col-lg-4 col-xl-4 col-sm-12 col-md-12">
                                     <label for="Plot[]">Plots </label>
                                     <select class="multiple form-control" name="Plot[]" id="Plot" multiple="multiple" style="width:100%;">
                                         <?php
@@ -299,14 +375,14 @@
                         <button class="m-2 mx-auto btn" id="apply">Apply</button>
                         <button class="m-2 mx-auto btn" id="save">Save state</button>
                     </div>
-            </div> 
+            </div>
     </div>
     <br>
     <div class="container">
-        <?php //echo "$pagination_links";?>
+        <div id="page-selection"></div>
     </div>
 </div>
-<?php 
+<?php
     $this->table->set_heading(array_keys($headers)); // Génère les headers du tableau fournis dans datatable.php
     echo $this->table->generate();
 ?>

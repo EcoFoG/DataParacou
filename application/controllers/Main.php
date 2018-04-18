@@ -8,16 +8,16 @@ class Main extends CI_Controller {
 
     function __construct(){ // Constructeur http://php.net/manual/fr/language.oop5.decon.php
         parent::__construct();
-        
+
         // Appelle les modèles depuis application/models/
         $this->load->model('User_model', 'user_model', TRUE);
         $this->load->model('Request_model', 'request_model', TRUE);
-        
+
         // Appelle les items "roles" et "status" du fichier application/config/config.php
         $this->status = $this->config->item('status');
         $this->roles = $this->config->item('roles');
 
-        // Appelle les librairies 
+        // Appelle les librairies
         $this->load->library('form_validation');
         $this->form_validation->set_error_delimiters('<div class="error">', '</div>');
         $this->load->helper('form');
@@ -40,13 +40,13 @@ class Main extends CI_Controller {
         if($this->input->post("disconnect")){ // Si lien "Logout" pressé redirige vers la fonction logout()
             redirect(base_url().'main/logout/');
         }
-        // Redirection vers login() si la session n'existe pas ou si le comtpe est expiré 
+        // Redirection vers login() si la session n'existe pas ou si le comtpe est expiré
         if(empty($this->session->userdata['email']) || ((isset($this->session->userdata['expires'])) && (time() > strtotime(str_replace('/', '-', $this->session->userdata['expires']))))){
             redirect(base_url().'main/login/');
         }
         return $this->session->userdata('role');
     }
-    
+
     // Put config files in variables
     private function configTable(&$data, &$filters, &$columns){
         /* Configuration of the data table in application/config/datatable.php */
@@ -60,7 +60,7 @@ class Main extends CI_Controller {
         $columns = $this->config->item("columns");
         $this->table->set_template($tmpl); // Apply template to the generated table
     }
-    private function getFilters(&$data, $filters, $paracouDB){ 
+    private function getFilters(&$data, $filters, $paracouDB){
             foreach ($filters as $value) { // Pour chaque filtre dans application/config/datatable.php
                 $data['F'.$value] = $this->cache->get('F'.$value); // Cherche dans le cache si les niveaux de filtres ne sont pas déjà enregistrés
                 if (!($data['F'.$value])) { // Si ils n'existent pas
@@ -68,13 +68,13 @@ class Main extends CI_Controller {
                     foreach($temp as $key2=>$value2) {
                         $temp[$key2] = $temp[$key2][$value];
                     }
-                    $data['F'.$value] = $temp; // Enregistre dans un tableau avec la clé Ffiltre (FCensusYear, FGenus ...)
+                    $data['F'.$value] = $temp; // Enregistre dans un tableau avec la clé F*filtre* (FCensusYear, FGenus ...)
                     $this->cache->save('F'.$value, $data['F'.$value], 0); // Enregistre dans le cache
                 }
             }
             $data['filters'] = $filters;
     }
-    private function getCircBoundaries(&$data, $paracouDB){ 
+    private function getCircBoundaries(&$data, $paracouDB){
             $circDBMin = $this->cache->get('circDBMin');
             $circDBMax = $this->cache->get('circDBMin');
             if (!$circDBMin || !$circDBMax) {
@@ -88,9 +88,9 @@ class Main extends CI_Controller {
                 $data['circDBMax'] = $circDBMax;
                 $data['circDBMin'] = $circDBMin;
             }
-            
+
     }
-    
+
     /* Retourne une chaine de caractère $limit qui servira pour la requête pour la pagination et le nombre de lignes affiché à l'écran */
     private function limit($offset, $n_limit){
         $limit = " LIMIT $n_limit OFFSET $offset";
@@ -106,7 +106,7 @@ class Main extends CI_Controller {
         $this->pagination->initialize($conf_pagination);
         $data["pagination_links"] = $this->pagination->create_links();
     }
-    
+
     public function index(){
         $filters = $columns = $data = array();
 
@@ -132,22 +132,23 @@ class Main extends CI_Controller {
         $this->load->view('index', $data);
         $this->load->view('footer');
     }
-        
+
+        #### Génère un JSON pour le javascript de application/views/index.php ####
         public function api_table(){
-            
+
             $this->checkLogin();
-            
+
             $get = $this->input->get(NULL, FALSE);
-            
+
             $paracouDB = $this->load->database('paracou', TRUE);
-            
+
             $filters = $columns = $data = array();
             $this->configTable($data, $filters, $columns);
-            
+
             #### Set default circMax and circMin ####
             $circMax = isset($get['circMax']) ? $get['circMax'] : $data['defaultCircBoundaries']['circMax'];
             $circMin = isset($get['circMin']) ? $get['circMin'] : $data['defaultCircBoundaries']['circMin'];
-            
+
             #### Create like string for the query ####
             $flag = count($filters);
             foreach($filters as $value){
@@ -161,37 +162,45 @@ class Main extends CI_Controller {
               . "WHERE \"Circ\" BETWEEN $circMin AND $circMax "
               . "$like "
               . "ORDER BY \"Plot\",\"SubPlot\",\"TreeFieldNum\",\"CensusYear\"";
-            
+
             #### Create limit string for the query ####
             $offset = isset($get["page"]) ? $get["page"] : 1;
             $n_limit = isset($get['limit']) ? $get['limit'] : 50;
             $limit = $this->limit($offset,$n_limit);
-            
-            #### Generate the csv ####
+
+            #### Génère le CSV si l'input "CSV" existe ####
             if(isset($get["csv"])){
                 $time = time();
                 $name = "Paracou".mdate("%Y%m%d",$time).".csv"; // Name of the CSV
                 $csv = $this->dbutil->csv_from_result($paracouDB->query($query));
                 force_download($name, $csv);
-            #### Generate the table ####
+            #### Sinon génère la table ####
             } else {
                 $total_rows = $paracouDB->query($query)->num_rows(); // Getting the number of rows for pagination
                 $query .= "$limit" ;
-                echo json_encode($paracouDB->query($query)->result_array());
+
+                $json["num_rows"] = $total_rows;
+                $json["table"] = $paracouDB->query($query)->result_array();
+
+                echo json_encode($json);
             }
         }
-        
+
+        #### Génère un JSON pour le javascript de application/views/index.php ####
         public function api_filters()
 	{
             $this->checkLogin();
-            
+
             $get = $this->input->get();
             $cache['VernNamesSelected'] = $this->cache->get('FamilyGenusSpeciesByVernName');
             $cache['FamiliesSelected'] = $this->cache->get('GenusSpeciesByFamily');
             $cache['GenusSelected'] = $this->cache->get('SpeciesFamilyByGenus');
             $cache['SpeciesSelected'] = $this->cache->get('GenusFamilyBySpecies');
-            
-            
+            $cache['PlotSelected'] = $this->cache->get('GenusFamilyBySpecies');
+            $cache['SubPlotSelected'] = $this->cache->get('GenusFamilyBySpecies');
+            $cache['CensusYearSelected'] = $this->cache->get('GenusFamilyBySpecies');
+
+
             if (isset($get['VernNamesSelected'])) {
                 foreach($get['VernNamesSelected'] as $value){
                         $VernNamesSelected[$value] = $cache['VernNamesSelected'][$value];
@@ -200,7 +209,7 @@ class Main extends CI_Controller {
                 $temp['VernNamesSelected']['Genus'] = call_user_func_array('array_merge',array_column($VernNamesSelected,'Genus'));
                 $temp['VernNamesSelected']['Species'] = call_user_func_array('array_merge',array_column($VernNamesSelected,'Species'));
             }
-            
+
             if (isset($get['FamiliesSelected'])) {
                 foreach($get['FamiliesSelected'] as $value){
                         $FamiliesSelected[$value] = $cache['FamiliesSelected'][$value];
@@ -208,6 +217,7 @@ class Main extends CI_Controller {
                 $temp['FamiliesSelected']['Genus'] = call_user_func_array('array_merge',array_column($FamiliesSelected,'Genus'));
                 $temp['FamiliesSelected']['Species'] = call_user_func_array('array_merge',array_column($FamiliesSelected,'Species'));
             }
+
             if (isset($get['GenusSelected'])) {
                 foreach($get['GenusSelected'] as $value){
                         $GenusSelected[$value] = $cache['GenusSelected'][$value];
@@ -222,10 +232,25 @@ class Main extends CI_Controller {
                 $temp['SpeciesSelected']['Family'] = call_user_func_array('array_merge',array_column($SpeciesSelected,'Family'));
                 $temp['SpeciesSelected']['Genus'] = call_user_func_array('array_merge',array_column($SpeciesSelected,'Genus'));
             }
-            
+
+            if (isset($get['PlotSelected'])) {
+                foreach($get['PlotSelected'] as $value){
+                        $PlotSelected[$value] = $cache['PlotSelected'][$value];
+                }
+                $temp['PlotSelected']['SubPlot'] = call_user_func_array('array_merge',array_column($SubPlotSelected,'SubPlot'));
+            }
+
+            if (isset($get['PlotSelected'])) {
+                foreach($get['PlotSelected'] as $value){
+                        $PlotSelected[$value] = $cache['PlotSelected'][$value];
+                }
+                $temp['PlotSelected']['SubPlot'] = call_user_func_array('array_merge',array_column($PlotSelected,'Family'));
+                $temp['PlotSelected']['CensusYear'] = call_user_func_array('array_merge',array_column($SpeciesSelected,'Genus'));
+            }
+
 //            How to intersect array only if they exists
 //            https://stackoverflow.com/questions/49694616/how-to-intersect-array-only-if-they-exists/49696487#49696487
-            
+
             $output['Family'] = (isset($temp['VernNamesSelected']['Family']) && isset($temp['GenusSelected']['Family']) && isset($temp['SpeciesSelected']['Family']) ? array_intersect($temp['VernNamesSelected']['Family'],$temp['GenusSelected']['Family'],$temp['SpeciesSelected']['Family']) :
                 (isset($temp['VernNamesSelected']['Family']) && isset($temp['GenusSelected']['Family']) && !isset($temp['SpeciesSelected']['Family']) ? array_intersect($temp['VernNamesSelected']['Family'],$temp['GenusSelected']['Family']) :
                 (isset($temp['VernNamesSelected']['Family']) && !isset($temp['GenusSelected']['Family']) && isset($temp['SpeciesSelected']['Family']) ? array_intersect($temp['VernNamesSelected']['Family'],$temp['SpeciesSelected']['Family']) :
@@ -234,57 +259,61 @@ class Main extends CI_Controller {
                 (!isset($temp['VernNamesSelected']['Family']) && isset($temp['GenusSelected']['Family']) && !isset($temp['SpeciesSelected']['Family']) ? $temp['GenusSelected']['Family'] :
                 (!isset($temp['VernNamesSelected']['Family']) && !isset($temp['GenusSelected']['Family']) && isset($temp['SpeciesSelected']['Family']) ? $temp['SpeciesSelected']['Family'] :
                 NULL)))))));
-            
-            $output['Genus'] = (isset($temp['VernNamesSelected']['Genus']) && isset($temp['GenusSelected']['Genus']) && isset($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'],$temp['GenusSelected']['Genus'],$temp['SpeciesSelected']['Genus']) :
-                (isset($temp['VernNamesSelected']['Genus']) && isset($temp['GenusSelected']['Genus']) && !isset($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'],$temp['GenusSelected']['Genus']) :
-                (isset($temp['VernNamesSelected']['Genus']) && !isset($temp['GenusSelected']['Genus']) && isset($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'],$temp['SpeciesSelected']['Genus']) :
-                (!isset($temp['VernNamesSelected']['Genus']) && isset($temp['GenusSelected']['Genus']) && isset($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['GenusSelected']['Genus'],$temp['SpeciesSelected']['Genus']) :
-                (isset($temp['VernNamesSelected']['Genus']) && !isset($temp['GenusSelected']['Genus']) && !isset($temp['SpeciesSelected']['Genus']) ? $temp['VernNamesSelected']['Genus'] :
-                (!isset($temp['VernNamesSelected']['Genus']) && isset($temp['GenusSelected']['Genus']) && !isset($temp['SpeciesSelected']['Genus']) ? $temp['GenusSelected']['Genus'] :
-                (!isset($temp['VernNamesSelected']['Genus']) && !isset($temp['GenusSelected']['Genus']) && isset($temp['SpeciesSelected']['Genus']) ? $temp['SpeciesSelected']['Genus'] :
+
+            $output['Genus'] = (isset($temp['VernNamesSelected']['Genus']) && isset($temp['FamiliesSelected']['Genus']) && isset($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'],$temp['FamiliesSelected']['Genus'],$temp['SpeciesSelected']['Genus']) :
+                (isset($temp['VernNamesSelected']['Genus']) && isset($temp['FamiliesSelected']['Genus']) && !isset($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'],$temp['FamiliesSelected']['Genus']) :
+                (isset($temp['VernNamesSelected']['Genus']) && !isset($temp['FamiliesSelected']['Genus']) && isset($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'],$temp['SpeciesSelected']['Genus']) :
+                (!isset($temp['VernNamesSelected']['Genus']) && isset($temp['FamiliesSelected']['Genus']) && isset($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['FamiliesSelected']['Genus'],$temp['SpeciesSelected']['Genus']) :
+                (isset($temp['VernNamesSelected']['Genus']) && !isset($temp['FamiliesSelected']['Genus']) && !isset($temp['SpeciesSelected']['Genus']) ? $temp['VernNamesSelected']['Genus'] :
+                (!isset($temp['VernNamesSelected']['Genus']) && isset($temp['FamiliesSelected']['Genus']) && !isset($temp['SpeciesSelected']['Genus']) ? $temp['FamiliesSelected']['Genus'] :
+                (!isset($temp['VernNamesSelected']['Genus']) && !isset($temp['FamiliesSelected']['Genus']) && isset($temp['SpeciesSelected']['Genus']) ? $temp['SpeciesSelected']['Genus'] :
                 NULL)))))));
-            
-            $output['Species'] = (isset($temp['VernNamesSelected']['Species']) && isset($temp['GenusSelected']['Species']) && isset($temp['SpeciesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'],$temp['GenusSelected']['Species'],$temp['SpeciesSelected']['Species']) :
-                (isset($temp['VernNamesSelected']['Species']) && isset($temp['GenusSelected']['Species']) && !isset($temp['SpeciesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'],$temp['GenusSelected']['Species']) :
-                (isset($temp['VernNamesSelected']['Species']) && !isset($temp['GenusSelected']['Species']) && isset($temp['SpeciesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'],$temp['SpeciesSelected']['Species']) :
-                (!isset($temp['VernNamesSelected']['Species']) && isset($temp['GenusSelected']['Species']) && isset($temp['SpeciesSelected']['Species']) ? array_intersect($temp['GenusSelected']['Species'],$temp['SpeciesSelected']['Species']) :
-                (isset($temp['VernNamesSelected']['Species']) && !isset($temp['GenusSelected']['Species']) && !isset($temp['SpeciesSelected']['Species']) ? $temp['VernNamesSelected']['Species'] :
-                (!isset($temp['VernNamesSelected']['Species']) && isset($temp['GenusSelected']['Species']) && !isset($temp['SpeciesSelected']['Species']) ? $temp['GenusSelected']['Species'] :
-                (!isset($temp['VernNamesSelected']['Species']) && !isset($temp['GenusSelected']['Species']) && isset($temp['SpeciesSelected']['Species']) ? $temp['SpeciesSelected']['Species'] :
+
+            $output['Species'] = (isset($temp['VernNamesSelected']['Species']) && isset($temp['GenusSelected']['Species']) && isset($temp['FamiliesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'],$temp['GenusSelected']['Species'],$temp['FamiliesSelected']['Species']) :
+                (isset($temp['VernNamesSelected']['Species']) && isset($temp['GenusSelected']['Species']) && !isset($temp['FamiliesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'],$temp['GenusSelected']['Species']) :
+                (isset($temp['VernNamesSelected']['Species']) && !isset($temp['GenusSelected']['Species']) && isset($temp['FamiliesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'],$temp['FamiliesSelected']['Species']) :
+                (!isset($temp['VernNamesSelected']['Species']) && isset($temp['GenusSelected']['Species']) && isset($temp['FamiliesSelected']['Species']) ? array_intersect($temp['GenusSelected']['Species'],$temp['FamiliesSelected']['Species']) :
+                (isset($temp['VernNamesSelected']['Species']) && !isset($temp['GenusSelected']['Species']) && !isset($temp['FamiliesSelected']['Species']) ? $temp['VernNamesSelected']['Species'] :
+                (!isset($temp['VernNamesSelected']['Species']) && isset($temp['GenusSelected']['Species']) && !isset($temp['FamiliesSelected']['Species']) ? $temp['GenusSelected']['Species'] :
+                (!isset($temp['VernNamesSelected']['Species']) && !isset($temp['GenusSelected']['Species']) && isset($temp['FamiliesSelected']['Species']) ? $temp['FamiliesSelected']['Species'] :
                 NULL)))))));
-                
-                $output['VernName'] = $this->cache->get('FVernName');
-                $output['Family'] = $this->cache->get('FFamily');
-                $output['Genus'] = $this->cache->get('FGenus');
-                $output['Species'] = $this->cache->get('FSpecies');
-                
+
                 if(!empty($output['VernName'])){
                     foreach($output['VernName'] as $key2=>$value2){
                         $output['VernName'][$key2] = array('id' => $key2 , 'text' => $value2);
                     }
+                } else {
+                      $output['VernName'] = $this->cache->get('FVernName');
                 }
+
                 if(!empty($output['Family'])){
                     foreach($output['Family'] as $key2=>$value2){
                         $output['Family'][$key2] = array('id' => $key2 , 'text' => $value2);
                     }
+                } else {
+                  $output['Family'] = $this->cache->get('FFamily');
                 }
                 if(!empty($output['Genus'])){
                     foreach($output['Genus'] as $key2=>$value2){
                         $output['Genus'][$key2] = array('id' => $key2 , 'text' => $value2);
                     }
+                } else {
+                    $output['Genus'] = $this->cache->get('FGenus');
                 }
                 if(!empty($output['Species'])){
                     foreach($output['Species'] as $key2=>$value2){
                         $output['Species'][$key2] = array('id' => $key2 , 'text' => $value2);
                     }
+                } else {
+                    $output['Species'] = $this->cache->get('FSpecies');
                 }
                 echo json_encode($output);
         }
-        
+
         #### Génère la chaine de caractère $like pour le filtrage ####
         protected function like($filters, $get)
         {
- 
+
             foreach($filters as $key => $value) {
                 if(isset($get[$value])){
                     $str = implode("|", $get[$value]);
@@ -304,7 +333,8 @@ class Main extends CI_Controller {
         protected function _islocal(){
             return strpos($_SERVER['HTTP_HOST'], 'local');
         }
-        
+
+        #### Transforme le tableau des colonnes en tableau à nom simples ####
         private function pluck( $a, $prop )
 	{
 		$out = array();
@@ -312,7 +342,7 @@ class Main extends CI_Controller {
 			$out[] = $a[$i][$prop];
 		}
 		return $out;
-	} 
+	}
 
         public function complete()
         {
@@ -392,7 +422,7 @@ class Main extends CI_Controller {
             }
 
         }
-        
+
         public function request()
         {
             $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
@@ -406,24 +436,24 @@ class Main extends CI_Controller {
             $this->form_validation->set_rules('timeline', 'Timeline', 'required|valid_date|max_length[255]');
 
             if($this->form_validation->run() == FALSE) {
-                
+
                 $fields = array(
                     "CensusYear",
                     "Plot"
                 );
-                
+
                 $paracouDB = $this->load->database('paracou', TRUE); // Use paracou database
-                
+
                 /* Get columns name */
                 $data["columns_name"] = $paracouDB->query("SELECT *
                 FROM information_schema.columns
                 WHERE table_schema = 'public'
                   AND table_name   = 'taparacou'")->result_array();
-                
+
                 foreach ($fields as $value) {
                     $data[$value] = $paracouDB->query("select \"$value\" from taparacou group by \"$value\" order by \"$value\"")->result_array();
                 }
-                
+
                 $this->load->view('header');
                 $this->load->view('request',$data);
                 $this->load->view('footer');
@@ -526,9 +556,9 @@ class Main extends CI_Controller {
 
                 $this->load->library('password');
                 $post = $this->input->post(NULL, TRUE);
-                
+
                 $cleanPost = $this->security->xss_clean($post);
-                
+
                 $hashed = $this->password->create_hash($cleanPost['password']);
                 $cleanPost['password'] = $hashed;
                 $cleanPost['user_id'] = $user_info->id;

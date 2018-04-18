@@ -56,6 +56,11 @@ h5 span {
     margin-bottom:3px;
 }
 
+.annoted-header {
+    text-decoration: none;
+    border-bottom: 1px dotted #000;
+}
+
 .loader{
     border: 5px solid #f3f3f3; /* Light grey */
     border-top: 5px solid #555; /* Hard grey */
