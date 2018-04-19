@@ -4,11 +4,22 @@
 ?>
 <script type="text/javascript" src="<?php echo base_url() ?>public/js/filterAutocomplete.js"></script>
 <script type="text/javascript">
-    $(document).ready(function() {
+    Array.prototype.unique = function() {
+        var a = this.concat();
+        for(var i=0; i<a.length; ++i) {
+            for(var j=i+1; j<a.length; ++j) {
+                if(a[i] === a[j])
+                    a.splice(j--, 1);
+            }
+        }
 
+        return a;
+    };
+
+    $(document).ready(function() {
       $('.multiple').on('select2:close', function (e){
-                  var VernNamesObj = $("#VernName").select2('data');
-                  var VernNamesSelected = VernNamesObj.map(function (obj) {
+                  var VernNameObj = $("#VernName").select2('data');
+                  var VernNamesSelected = VernNameObj.map(function (obj) {
                       return obj.text;
                   });
                   var FamiliesObj = $("#Family").select2('data');
@@ -23,35 +34,43 @@
                   var SpeciesSelected = SpeciesObj.map(function (obj) {
                       return obj.text;
                   });
+                  var PlotObj = $("#Plot").select2('data');
+                  var PlotsSelected = PlotObj.map(function (obj) {
+                      return obj.text;
+                  });
+                  var SubPlotObj = $("#SubPlot").select2('data');
+                  var SubPlotsSelected = SubPlotObj.map(function (obj) {
+                      return obj.text;
+                  });
+                  var CensusYearObj = $("#CensusYear").select2('data');
+                  var CensusYearsSelected = CensusYearObj.map(function (obj) {
+                      return obj.text;
+                  });
 
                   $.ajax({
                       url: "<?php echo base_url()?>main/api_filters",
-                      data: {VernNamesSelected : VernNamesSelected, FamiliesSelected : FamiliesSelected, GenusSelected : GenusSelected, SpeciesSelected : SpeciesSelected },
+                      data: {PlotsSelected : PlotsSelected, CensusYearsSelected : CensusYearsSelected, VernNamesSelected : VernNamesSelected, FamiliesSelected : FamiliesSelected, GenusSelected : GenusSelected, SpeciesSelected : SpeciesSelected },
                       datatype: 'json',
                       async: true
                   }).done(function(dataajax){
-                      // Faire une union entre array données selectionnées et array retour des filtres correspondants
                       dataajax = JSON.parse(dataajax);
 
-                      var VernNamesObj = $("#VernName").select2('data');
-                      var FamiliesObj = $("#Family").select2('data');
+                      var VernNameObj = $("#VernName").select2('data');
+                      var FamilyObj = $("#Family").select2('data');
                       var GenusObj = $("#Genus").select2('data');
                       var SpeciesObj = $("#Species").select2('data');
+                      var PlotObj = $("#Plot").select2('data');
+                      var SubPlotObj = $("#SubPlot").select2('data');
+                      var CensusYearObj = $("#CensusYear").select2('data');
 
-                      console.log(dataajax);
-
-                      let mergedVernNames = Object.assign(dataajax.VernName, VernNamesObj);
-                      let mergedFamily = Object.assign(dataajax.Family, FamiliesObj);
-                      let mergedGenus = Object.assign(dataajax.Genus, GenusObj);
-                      let mergedSpecies = Object.assign(dataajax.Species, SpeciesObj);
-
-                      console.log("Families Obj : ");
-                      console.log(FamiliesObj);
-
-
-                      console.log("merged Family : ");
-                      console.log(mergedFamily);
-
+                      // Merge Selected options with received data to avoid unselection and convert it to an array
+                      let mergedVernNames = Object.values(Object.assign(dataajax.VernName, VernNameObj));
+                      let mergedFamily = Object.values(Object.assign(dataajax.Family, FamiliesObj));
+                      let mergedGenus = Object.values(Object.assign(dataajax.Genus, GenusObj));
+                      let mergedSpecies = Object.values(Object.assign(dataajax.Species, SpeciesObj));
+                      let mergedPlot = Object.values(Object.assign(dataajax.Plot, PlotObj));
+                      let mergedSubPlot = Object.values(Object.assign(dataajax.SubPlot, SubPlotObj));
+                      let mergedCensusYear = Object.assign(dataajax.CensusYear, CensusYearObj);
 
                       if (dataajax) {
                           $("#VernName").html("");
@@ -73,6 +92,21 @@
                           $('#Species').select2({
                               closeOnSelect: false,
                               data : mergedSpecies
+                          });
+                          $("#Plot").html("");
+                          $('#Plot').select2({
+                              closeOnSelect: false,
+                              data : mergedPlot
+                          });
+                          $("#SubPlot").html("");
+                          $('#SubPlot').select2({
+                              closeOnSelect: false,
+                              data : mergedSubPlot
+                          });
+                          $("#CensusYear").html("");
+                          $('#CensusYear').select2({
+                              closeOnSelect: false,
+                              data : mergedCensusYear
                           });
                       };
                   });

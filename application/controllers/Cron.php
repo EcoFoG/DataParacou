@@ -51,7 +51,18 @@ class Cron extends CI_Controller {
             }
             $PlotByCensusYear[$value] = $temp;
         }
+        print_r($PlotByCensusYear);
         $this->cache->save('PlotByCensusYear', $PlotByCensusYear, 0);
+
+        foreach($Plot as $value){
+            $temp = $paracouDB->query("select \"CensusYear\" from taparacou where \"Plot\"='$value' group by \"CensusYear\" order by \"CensusYear\"")->result_array();
+            foreach($temp as $key2=>$value2) {
+                $temp[$key2] = $temp[$key2]["CensusYear"];
+            }
+            $CensusYearByPlot[$value] = $temp;
+        }
+        print_r($CensusYearByPlot);
+        $this->cache->save('CensusYearByPlot', $CensusYearByPlot, 0);
 
         foreach($Plot as $value){
             $temp = $paracouDB->query("select \"SubPlot\" from taparacou where \"Plot\"='$value' group by \"SubPlot\" order by \"SubPlot\"")->result_array();
@@ -60,6 +71,7 @@ class Cron extends CI_Controller {
             }
             $SubPlotByPlot[$value] = $temp;
         }
+        print_r($SubPlotByPlot);
         $this->cache->save('SubPlotByPlot', $SubPlotByPlot, 0);
 
         foreach($Plot as $value){
@@ -69,6 +81,7 @@ class Cron extends CI_Controller {
             }
             $SubPlotByPlot[$value] = $temp;
         }
+        print_r($CensusYearByPlot);
         $this->cache->save('CensusYearByPlot', $CensusYearByPlot, 0);
 
         foreach($Family as $value){
@@ -96,6 +109,7 @@ class Cron extends CI_Controller {
             }
             $SpeciesFamilyByGenus[$value] = $temp;
         }
+        print_r($SpeciesFamilyByGenus);
         $this->cache->save('SpeciesFamilyByGenus', $SpeciesFamilyByGenus, 0);
 
         foreach($Species as $value){
@@ -110,6 +124,7 @@ class Cron extends CI_Controller {
 
             $GenusFamilyBySpecies[$value] = $temp;
         }
+        print_r($GenusFamilyBySpecies);
         $this->cache->save('GenusFamilyBySpecies', $GenusFamilyBySpecies, 0);
 
         foreach($VernName as $value){
@@ -128,6 +143,7 @@ class Cron extends CI_Controller {
 
             $FamilyGenusSpeciesByVernName[$value] = $temp;
         }
+        print_r($FamilyGenusSpeciesByVernName);
         $this->cache->save('FamilyGenusSpeciesByVernName', $FamilyGenusSpeciesByVernName, 0);
 
 

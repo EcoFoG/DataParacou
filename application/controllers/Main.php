@@ -196,9 +196,9 @@ class Main extends CI_Controller {
             $cache['FamiliesSelected'] = $this->cache->get('GenusSpeciesByFamily');
             $cache['GenusSelected'] = $this->cache->get('SpeciesFamilyByGenus');
             $cache['SpeciesSelected'] = $this->cache->get('GenusFamilyBySpecies');
-            $cache['PlotSelected'] = $this->cache->get('GenusFamilyBySpecies');
-            $cache['SubPlotSelected'] = $this->cache->get('GenusFamilyBySpecies');
-            $cache['CensusYearSelected'] = $this->cache->get('GenusFamilyBySpecies');
+            $cache['SubPlot'] = $this->cache->get('SubPlotByPlot');
+            $cache['CensusYear'] = $this->cache->get('CensusYearByPlot');
+            $cache['Plot'] = $this->cache->get('PlotByCensusYear');
 
 
             if (isset($get['VernNamesSelected'])) {
@@ -233,19 +233,20 @@ class Main extends CI_Controller {
                 $temp['SpeciesSelected']['Genus'] = call_user_func_array('array_merge',array_column($SpeciesSelected,'Genus'));
             }
 
-            if (isset($get['PlotSelected'])) {
-                foreach($get['PlotSelected'] as $value){
-                        $PlotSelected[$value] = $cache['PlotSelected'][$value];
+            if (isset($get['PlotsSelected'])) {
+                foreach($get['PlotsSelected'] as $key=>$value){
+                         $tempSubPlot[$value] = $cache['SubPlot'][$value];
+                         $tempCensusYear[$value] = $cache['CensusYear'][$value];
                 }
-                $temp['PlotSelected']['SubPlot'] = call_user_func_array('array_merge',array_column($SubPlotSelected,'SubPlot'));
+                $output['SubPlot'] = array_unique(call_user_func_array('array_merge',$tempSubPlot));
+                $output['CensusYear'] = array_unique(call_user_func_array('array_merge',$tempCensusYear));
             }
 
-            if (isset($get['PlotSelected'])) {
-                foreach($get['PlotSelected'] as $value){
-                        $PlotSelected[$value] = $cache['PlotSelected'][$value];
+            if (isset($get['CensusYearsSelected'])) {
+                foreach($get['CensusYearsSelected'] as $key=>$value){
+                         $tempPlot[$value] = $cache['Plot'][$value];
                 }
-                $temp['PlotSelected']['SubPlot'] = call_user_func_array('array_merge',array_column($PlotSelected,'Family'));
-                $temp['PlotSelected']['CensusYear'] = call_user_func_array('array_merge',array_column($SpeciesSelected,'Genus'));
+                $output['Plot'] = array_unique(call_user_func_array('array_merge',$tempPlot));
             }
 
 //            How to intersect array only if they exists
@@ -278,31 +279,55 @@ class Main extends CI_Controller {
                 (!isset($temp['VernNamesSelected']['Species']) && !isset($temp['GenusSelected']['Species']) && isset($temp['FamiliesSelected']['Species']) ? $temp['FamiliesSelected']['Species'] :
                 NULL)))))));
 
-                if(!empty($output['VernName'])){
-                    foreach($output['VernName'] as $key2=>$value2){
-                        $output['VernName'][$key2] = array('id' => $key2 , 'text' => $value2);
+                if(!empty($output['SubPlot'])){
+                    foreach($output['SubPlot'] as $key2=>$value2){
+                        $output['SubPlot'][$key2] = array('id' => $value2 , 'text' => $value2);
                     }
                 } else {
-                      $output['VernName'] = $this->cache->get('FVernName');
+                    $output['SubPlot'] = $this->cache->get('FSubPlot');
+                }
+
+                if(!empty($output['CensusYear'])){
+                    foreach($output['CensusYear'] as $key2=>$value2){
+                        $output['CensusYear'][$key2] = array('id' => $value2 , 'text' => $value2);
+                    }
+                } else {
+                    $output['CensusYear'] = $this->cache->get('FCensusYear');
+                }
+
+                if(!empty($output['Plot'])){
+                    foreach($output['Plot'] as $key2=>$value2){
+                        $output['Plot'][$key2] = array('id' => $value2 , 'text' => $value2);
+                    }
+                } else {
+                    $output['Plot'] = $this->cache->get('FPlot');
+                }
+
+                if(!empty($output['VernName'])){
+                    foreach($output['VernName'] as $key2=>$value2){
+                        $output['VernName'][$key2] = array('id' => $value2 , 'text' => $value2);
+                    }
+                } else {
+                    $output['VernName'] = $this->cache->get('FVernName');
                 }
 
                 if(!empty($output['Family'])){
                     foreach($output['Family'] as $key2=>$value2){
-                        $output['Family'][$key2] = array('id' => $key2 , 'text' => $value2);
+                        $output['Family'][$key2] = array('id' => $value2 , 'text' => $value2);
                     }
                 } else {
-                  $output['Family'] = $this->cache->get('FFamily');
+                    $output['Family'] = $this->cache->get('FFamily');
                 }
                 if(!empty($output['Genus'])){
                     foreach($output['Genus'] as $key2=>$value2){
-                        $output['Genus'][$key2] = array('id' => $key2 , 'text' => $value2);
+                        $output['Genus'][$key2] = array('id' => $value2 , 'text' => $value2);
                     }
                 } else {
                     $output['Genus'] = $this->cache->get('FGenus');
                 }
                 if(!empty($output['Species'])){
                     foreach($output['Species'] as $key2=>$value2){
-                        $output['Species'][$key2] = array('id' => $key2 , 'text' => $value2);
+                        $output['Species'][$key2] = array('id' => $value2 , 'text' => $value2);
                     }
                 } else {
                     $output['Species'] = $this->cache->get('FSpecies');
