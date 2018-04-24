@@ -18,7 +18,7 @@ $config['pagination'] = array (
     "last_tag_open" => '<li class="page-item">' ,
     "last_tag_close" => '</li>' ,
     "last_link" => 'Last',
-    "cur_tag_open" => '<li class="page-item active"><a class="page-link">' ,
+    "cur_tag_open" => '<li class="page-item active"><a href="#" class="page-link">' ,
     "cur_tag_close" => '</a></li>' ,
     "num_tag_open" => '<li class="page-item">' ,
     "num_tag_close" => '</li>' ,

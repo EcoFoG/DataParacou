@@ -2,20 +2,7 @@
     $circMax = !(empty($this->input->get('circMax'))) ? $this->input->get('circMax') : $defaultCircBoundaries['circMax']; // Opérateur ternaire : http://php.net/manual/fr/language.operators.comparison.php#language.operators.comparison.ternary
     $circMin = !(empty($this->input->get('circMin'))) ? $this->input->get('circMin') : $defaultCircBoundaries['circMin']; // Si circMin passé dans l'url, l'enregistrer dans la variable $circMin sinon utiliser la valeur de $defaultCircBoundaries (référence fonction index application/controller/main.php)
 ?>
-<script type="text/javascript" src="<?php echo base_url() ?>public/js/filterAutocomplete.js"></script>
 <script type="text/javascript">
-    Array.prototype.unique = function() {
-        var a = this.concat();
-        for(var i=0; i<a.length; ++i) {
-            for(var j=i+1; j<a.length; ++j) {
-                if(a[i] === a[j])
-                    a.splice(j--, 1);
-            }
-        }
-
-        return a;
-    };
-
     $(document).ready(function() {
       $('.multiple').on('select2:close', function (e){
                   var VernNameObj = $("#VernName").select2('data');
@@ -64,13 +51,13 @@
                       var CensusYearObj = $("#CensusYear").select2('data');
 
                       // Merge Selected options with received data to avoid unselection and convert it to an array
-                      let mergedVernNames = Object.values(Object.assign(dataajax.VernName, VernNameObj));
-                      let mergedFamily = Object.values(Object.assign(dataajax.Family, FamiliesObj));
-                      let mergedGenus = Object.values(Object.assign(dataajax.Genus, GenusObj));
-                      let mergedSpecies = Object.values(Object.assign(dataajax.Species, SpeciesObj));
-                      let mergedPlot = Object.values(Object.assign(dataajax.Plot, PlotObj));
-                      let mergedSubPlot = Object.values(Object.assign(dataajax.SubPlot, SubPlotObj));
-                      let mergedCensusYear = Object.assign(dataajax.CensusYear, CensusYearObj);
+                      let mergedVernNames = Object.values(Object.assign(dataajax.VernName, VernNameObj)).sort((a, b) => b.text - a.text);
+                      let mergedFamily = Object.values(Object.assign(dataajax.Family, FamiliesObj)).sort((a, b) => b.text - a.text);
+                      let mergedGenus = Object.values(Object.assign(dataajax.Genus, GenusObj)).sort((a, b) => b.text - a.text);
+                      let mergedSpecies = Object.values(Object.assign(dataajax.Species, SpeciesObj)).sort((a, b) => b.text - a.text);
+                      let mergedPlot = Object.values(Object.assign(dataajax.Plot, PlotObj)).sort((a, b) => b.text - a.text);
+                      let mergedSubPlot = Object.values(Object.assign(dataajax.SubPlot, SubPlotObj)).sort((a, b) => b.text - a.text);
+                      let mergedCensusYear = Object.values(Object.assign(dataajax.CensusYear, CensusYearObj)).sort((a, b) => b.text - a.text);
 
                       if (dataajax) {
                           $("#VernName").html("");
@@ -194,7 +181,19 @@
         });
         /* Evènemenent clic sur apply */
         $("#apply").click(function(){
+          load_data(1);
+        });
+        $(document).on("click", ".pagination li a", function(event){
+            event.preventDefault();
+            var page = $(this).data("ci-pagination-page");
             xhr.abort(); // Abandonne la requête ajax en cours
+            load_data(page);
+        });
+
+        getFilters();
+        xhr = load_data(1);
+
+        function load_data(page) {
             cleanTable(); // Supprime le contenu de la table
             if (!$(".loader").length) {
                 $('#datatable').after("<div class=\"loader mx-auto my-4\" />"); // Ajoute l'animation de loader si elle n'est pas déjà présente
@@ -206,22 +205,12 @@
                 data: { circMin : circMin, circMax : circMax, codeAlive : codeAlive, Plot : Plot, SubPlot : SubPlot, CensusYear : CensusYear, VernName : VernName, Family : Family, Genus : Genus, Species : Species, page : page, offset : offset, apply : "apply"} // Passe les paramètres via la méthode get
             }).done(function(data){ // Evènement données reçues
                 data = JSON.parse(data); // Transforme JSON -> Array javascript
-                data = data.table; // Garde uniquement la partie table
+                $('#page-selection').html(data.pagination_links);
                 $('.loader').remove(); // Supprime l'animation loader
-                createTable(data); // Ajoute les données à la table
+                createTable(data.table); // Ajoute les données à la table
             });
-        });
-        getFilters();
-        xhr = $.ajax({ // Execute la requête ajax à l'ouverture de la page web
-            url: "<?php echo base_url() ?>main/api_table",
-            datatype: "json",
-            data: { circMin : circMin, circMax : circMax, codeAlive : codeAlive, Plot : Plot, SubPlot : SubPlot, CensusYear : CensusYear, VernName : VernName, Family : Family, Genus : Genus, Species : Species, page : page, offset : offset, apply : "apply"}
-        }).done(function(data){
-            data = JSON.parse(data);
-            data = data.table; // Garde uniquement la partie table
-            $('.loader').remove();
-            createTable(data);
-        });
+            return xhr;
+        }
 
     });
 </script>

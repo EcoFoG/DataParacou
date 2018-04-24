@@ -12,7 +12,7 @@ class Main extends CI_Controller {
         // Appelle les modèles depuis application/models/
         $this->load->model('User_model', 'user_model', TRUE);
         $this->load->model('Request_model', 'request_model', TRUE);
-
+        $this->load->model('Data_model', 'data_model', TRUE);
         // Appelle les items "roles" et "status" du fichier application/config/config.php
         $this->status = $this->config->item('status');
         $this->roles = $this->config->item('roles');
@@ -75,36 +75,29 @@ class Main extends CI_Controller {
             $data['filters'] = $filters;
     }
     private function getCircBoundaries(&$data, $paracouDB){
-            $circDBMin = $this->cache->get('circDBMin');
-            $circDBMax = $this->cache->get('circDBMin');
-            if (!$circDBMin || !$circDBMax) {
-                $min_tmp = $paracouDB->query("SELECT min(\"Circ\") FROM taparacou")->row();
-                $data['circDBMin'] = $min_tmp->min;
-                $max_tmp = $paracouDB->query("SELECT max(\"Circ\") FROM taparacou")->row();
-                $data['circDBMax'] = $max_tmp->max;
-                $this->cache->save('circDBMin', $circDBMin, 86400);
-                $this->cache->save('circDBMax', $circDBMax, 86400);
-            } else {
-                $data['circDBMax'] = $circDBMax;
-                $data['circDBMin'] = $circDBMin;
-            }
 
-    }
+      $circDBMin = $this->cache->get('circDBMin');
+      $circDBMax = $this->cache->get('circDBMin');
+      if (!$circDBMin || !$circDBMax) {
+          $circBoundaries = $this->data_model->getCircBoundaries();
+          $data['circDBMax'] = $circBoundaries['circDBMax'];
+          $data['circDBMin'] = $circBoundaries['circDBMin'];
+          $this->cache->save('circDBMin', $circBoundaries['circDBMax'], 86400);
+          $this->cache->save('circDBMax', $circBoundaries['circDBMin'], 86400);
+      } else {
+          $data['circDBMax'] = $circDBMax;
+          $data['circDBMin'] = $circDBMin;
+      }
 
-    /* Retourne une chaine de caractère $limit qui servira pour la requête pour la pagination et le nombre de lignes affiché à l'écran */
-    private function limit($offset, $n_limit){
-        $limit = " LIMIT $n_limit OFFSET $offset";
-        return $limit;
     }
     /* Crée les liens de pagination à partir du nombre de lignes et du nombre de ligne à afficher */
-    private function paginate(&$data, $total_rows, $n_limit){
+    private function paginate($total_rows, $n_limit){
         $this->config->load("pagination");
         $conf_pagination = $this->config->item("pagination");
         $conf_pagination['base_url'] = base_url()."main/" ;
         $conf_pagination['total_rows'] = $total_rows;
         $conf_pagination['per_page'] = $n_limit;
         $this->pagination->initialize($conf_pagination);
-        $data["pagination_links"] = $this->pagination->create_links();
     }
 
     public function index(){
@@ -115,7 +108,7 @@ class Main extends CI_Controller {
         #### get GET method variables ####
         $get = $this->input->get(NULL, FALSE);
 
-        $data["get"] = $get;
+        $data['get'] = $get;
 
         #### Configuration de la base de données dans application/config/database.php ####
         $paracouDB = $this->load->database('paracou', TRUE);
@@ -140,8 +133,6 @@ class Main extends CI_Controller {
 
             $get = $this->input->get(NULL, FALSE);
 
-            $paracouDB = $this->load->database('paracou', TRUE);
-
             $filters = $columns = $data = array();
             $this->configTable($data, $filters, $columns);
 
@@ -149,46 +140,27 @@ class Main extends CI_Controller {
             $circMax = isset($get['circMax']) ? $get['circMax'] : $data['defaultCircBoundaries']['circMax'];
             $circMin = isset($get['circMin']) ? $get['circMin'] : $data['defaultCircBoundaries']['circMin'];
 
-            #### Create like string for the query ####
-            $flag = count($filters);
-            foreach($filters as $value){
-               $flag = (isset($get[$value])) ? $flag-1: $flag;
-            }
-            $like = (count($filters) > $flag) ? $this->like($filters,$get) : ''; // Empty chain in $like if no filter is select
-
-            #### Query ####
-            $query =   "SELECT \"".implode("\", \"", $this->pluck($columns, 'db'))."\" " // implode : http://php.net/manual/fr/function.implode.php
-              . "FROM taparacou "
-              . "WHERE \"Circ\" BETWEEN $circMin AND $circMax "
-              . "$like "
-              . "ORDER BY \"Plot\",\"SubPlot\",\"TreeFieldNum\",\"CensusYear\"";
-
-            #### Create limit string for the query ####
-            $offset = isset($get["page"]) ? $get["page"] : 1;
+            $offset = isset($get['page']) ? $get['page'] : 1;
             $n_limit = isset($get['limit']) ? $get['limit'] : 50;
-            $limit = $this->limit($offset,$n_limit);
 
             #### Génère le CSV si l'input "CSV" existe ####
-            if(isset($get["csv"])){
+            if(isset($get['csv'])){
+                $csv = $this->data_model->getCsv($filters, $get, $columns, $circMin, $circMax);
                 $time = time();
                 $name = "Paracou".mdate("%Y%m%d",$time).".csv"; // Name of the CSV
-                $csv = $this->dbutil->csv_from_result($paracouDB->query($query));
                 force_download($name, $csv);
             #### Sinon génère la table ####
             } else {
-                $total_rows = $paracouDB->query($query)->num_rows(); // Getting the number of rows for pagination
-                $query .= "$limit" ;
-
-                $json["num_rows"] = $total_rows;
-                $json["table"] = $paracouDB->query($query)->result_array();
-
-                echo json_encode($json);
+                $data_table["table"] = $this->data_model->getTable($filters, $get, $offset, $n_limit, $columns, $circMin, $circMax);
+                $num_rows = $this->data_model->getNumRows($columns, $filters, $get, $circMin, $circMax);
+                $this->paginate($num_rows, $n_limit);
+                $data_table["pagination_links"] = $this->pagination->create_links();
+                echo json_encode($data_table);
             }
         }
 
         #### Génère un JSON pour le javascript de application/views/index.php ####
-        public function api_filters()
-	{
+        public function api_filters(){
             $this->checkLogin();
 
             $get = $this->input->get();
@@ -334,40 +306,10 @@ class Main extends CI_Controller {
                 }
                 echo json_encode($output);
         }
-
-        #### Génère la chaine de caractère $like pour le filtrage ####
-        protected function like($filters, $get)
-        {
-
-            foreach($filters as $key => $value) {
-                if(isset($get[$value])){
-                    $str = implode("|", $get[$value]);
-                } else {
-                    $str='';
-                }
-                if ($str != '') {
-                    $binding = $str;
-                    $like[$key] = "CAST(\"".$value."\" AS TEXT) SIMILAR TO '".$binding."'";
-                }
-            }
-            $like = implode(" AND ",$like);
-            $like = " AND ".$like;
-            return $like;
-        }
-
         protected function _islocal(){
             return strpos($_SERVER['HTTP_HOST'], 'local');
         }
 
-        #### Transforme le tableau des colonnes en tableau à nom simples ####
-        private function pluck( $a, $prop )
-	{
-		$out = array();
-		for ( $i=0, $len=count($a) ; $i<$len ; $i++ ) {
-			$out[] = $a[$i][$prop];
-		}
-		return $out;
-	}
 
         public function complete()
         {
