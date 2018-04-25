@@ -51,13 +51,13 @@
                       var CensusYearObj = $("#CensusYear").select2('data');
 
                       // Merge Selected options with received data to avoid unselection and convert it to an array
-                      let mergedVernNames = Object.values(Object.assign(dataajax.VernName, VernNameObj)).sort((a, b) => b.text - a.text);
-                      let mergedFamily = Object.values(Object.assign(dataajax.Family, FamiliesObj)).sort((a, b) => b.text - a.text);
-                      let mergedGenus = Object.values(Object.assign(dataajax.Genus, GenusObj)).sort((a, b) => b.text - a.text);
-                      let mergedSpecies = Object.values(Object.assign(dataajax.Species, SpeciesObj)).sort((a, b) => b.text - a.text);
-                      let mergedPlot = Object.values(Object.assign(dataajax.Plot, PlotObj)).sort((a, b) => b.text - a.text);
-                      let mergedSubPlot = Object.values(Object.assign(dataajax.SubPlot, SubPlotObj)).sort((a, b) => b.text - a.text);
-                      let mergedCensusYear = Object.values(Object.assign(dataajax.CensusYear, CensusYearObj)).sort((a, b) => b.text - a.text);
+                      let mergedVernNames = Object.values(Object.assign(dataajax.VernName, VernNameObj)).sort((b, a) => b.text - a.text);
+                      let mergedFamily = Object.values(Object.assign(dataajax.Family, FamiliesObj)).sort((b, a) => b.text - a.text);
+                      let mergedGenus = Object.values(Object.assign(dataajax.Genus, GenusObj)).sort((b, a) => b.text - a.text);
+                      let mergedSpecies = Object.values(Object.assign(dataajax.Species, SpeciesObj)).sort((b, a) => b.text - a.text);
+                      let mergedPlot = Object.values(Object.assign(dataajax.Plot, PlotObj)).sort((b, a) => b.text - a.text);
+                      let mergedSubPlot = Object.values(Object.assign(dataajax.SubPlot, SubPlotObj)).sort((b, a) => b.text - a.text);
+                      let mergedCensusYear = Object.values(Object.assign(dataajax.CensusYear, CensusYearObj)).sort((b, a) => b.text - a.text);
 
                       if (dataajax) {
                           $("#VernName").html("");
@@ -214,17 +214,24 @@
 
     });
 </script>
+<!-- NAVIGATION -->
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <a href=<?php echo base_url();?> class="navbar-brand">Paracou-Ex</a> <!-- Titre affiché à gauche de la nav -->
+  <a href=<?php echo base_url();?> class="navbar-brand">Data Paracou</a> <!-- Titre affiché à gauche de la nav -->
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="collapse navbar-collapse" id="navbarText">
     <ul class="navbar-nav mr-auto">
-        <li class="nav-item">
-            <a class="nav-link" href=<?php echo "\"".base_url()."public/pdf/Paracou_data_dictionnary.pdf\"";?>>Data dictionnary</a> <!-- Lien vers le data dictionnary -->
-            <!-- Vous pouvez rajouter des liens ici / doc : https://www.w3schools.com/tags/att_a_href.asp -->
+        <li class="nav-item"><a class="nav-link" href="https://paracou.cirad.fr/">Website</a></li>
+        <li class="nav-item"><a class="nav-link" href="https://paracoumaps.cirad.fr/">Map</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Help</a>
+          <div class="dropdown-menu">
+            <a class="dropdown-item" href=<?php echo "\"".base_url()."public/pdf/Paracou_data_dictionnary.pdf\"";?>>Data dictionnary</a></li> <!-- Lien vers le data dictionnary -->
+          </div>
         </li>
+            <!-- Vous pouvez rajouter des liens ici / doc : https://www.w3schools.com/tags/att_a_href.asp -->
+
     </ul>
     <form class="navbar-text form-inline">
         <?php

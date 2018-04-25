@@ -14,7 +14,7 @@ class Request_model extends CI_Model {
         $columns=implode(',',$d['Columns']);
         $years=implode(',',$d['Years']);
         $plots=implode(',',$d['Plot']);
-        
+
         $string = array(
             'email'=>$d['email'],
             'affiliation'=>$d['affiliation'],
@@ -35,7 +35,7 @@ class Request_model extends CI_Model {
         return $this->db->insert_id();
     }
     
-public function updateRequestInfo($d)
+    public function updateRequestInfo($d)
     {
         $d["specific_conditions"] = isset($d["specific_conditions"]) ? $d["specific_conditions"] : NULL;
         $d["valorisation"] = isset($d['valorisation']) ? $d['valorisation'] : NULL;
@@ -56,7 +56,7 @@ public function updateRequestInfo($d)
         $request_info = $this->getRequestInfo($d['id']);
         return $request_info;
     }
-    
+
     public function deleteRequest($id){
         $this->db->delete('requests', array('id' => $id));
     }
@@ -66,7 +66,7 @@ public function updateRequestInfo($d)
         $this->db->get_where('requests', array('email' => $email), 1);
         return $this->db->affected_rows() > 0 ? TRUE : FALSE;
     }
-    
+
     public function getRequestList()
     {
         $q = $this->db->get('requests');

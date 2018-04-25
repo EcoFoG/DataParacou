@@ -22,7 +22,7 @@ $(document).ready(function() {
     $('#user-table').DataTable();
 } );
 </script>
-<a class="m-2 btn btn-primary" href="<?php echo base_url()."admin/add/"; ?>">Add user  <i class="fas fa-plus-circle"></i></a>
+<a class="m-2 btn btn-primary" href="<?php echo base_url()."admin/add_user/"; ?>">Add user  <i class="fas fa-plus-circle"></i></a>
 <table id="user-table" class="table table-bordered table-stripped">
     <thead>
         <th>Id</th>

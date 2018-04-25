@@ -45,7 +45,12 @@ class Data_model extends CI_Model {
       return $like;
     }
 
-    public function generateQueryString($columns = NULL, $filters, $get, $circMin, $circMax){
+    private function generateLimitString($offset = NULL, $n_limit = NULL){
+      $limit = " LIMIT $n_limit OFFSET $offset";
+      return $limit;
+    }
+
+    private function generateQueryString($columns = NULL, $filters, $get, $circMin, $circMax){
       $like = $this->generateLikeString($filters,$get);
       #### Query ####
       $query =   "SELECT \"".implode("\", \"", $this->pluck($columns, 'db'))."\" " // implode : http://php.net/manual/fr/function.implode.php
@@ -56,12 +61,7 @@ class Data_model extends CI_Model {
       return $query;
     }
 
-    private function generateLimitString($offset = NULL, $n_limit = NULL){
-      $limit = " LIMIT $n_limit OFFSET $offset";
-      return $limit;
-    }
-
-    public function getTable($filters, $get, $offset, $n_limit, $columns, $circMin, $circMax){
+    public function getTable($filters, $get, $columns, $circMin, $circMax, $offset, $n_limit){
       $limit = $this->generateLimitString($offset,$n_limit);
       $query = $this->generateQueryString($columns, $filters, $get, $circMin, $circMax);
 

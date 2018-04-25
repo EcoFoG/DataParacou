@@ -34,7 +34,7 @@ $(document).ready(function() {
         <th>Full name</th>
         <th>Affiliation</th>
         <th>Title Research</th>
-        <th>Expiration</th>
+        <th>Desired expiration</th>
         <th>Accepted</th>
         <th>Actions</th>
     </thead>

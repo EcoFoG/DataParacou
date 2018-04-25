@@ -23,26 +23,42 @@ class Admin extends CI_Controller {
             $this->load->dbutil();
 
         }
-        
-    protected function checkRights(){
+
+    private function checkRights(){
         if(empty($this->session->userdata['email'])){
             redirect(base_url().'main/login/');
         }
-        if ($this->session->userdata('role') != 'admin'){        
+        if ($this->session->userdata('role') != 'admin'){
             redirect(base_url().'admin/right_error/');
         } else {
             return true;
         }
-    }    
+    }
+
     public function index(){
         if ($this->checkRights()) {
             redirect(base_url().'admin/list_users/');
         }
     }
-    public function add($idrequest = NULL){
+
+    public function list_users(){
+
+        #### Account verifications ####
+        $this->checkRights();
+
+        $flash['flash_message'] = $this->session->flashdata('error_message');
+        $data['users'] = $this->user_model->getUserList(); // get User list
+
+        #### Views ####
+        $this->load->view('admin/header',$flash);
+        $this->load->view('admin/list_users', $data);
+        $this->load->view('admin/footer');
+    }
+
+    public function add_user($idRequest = NULL){
         if ($this->checkRights()) {
-            if (isset($idrequest)) {
-                $requestinfo= $this->request_model->getRequestInfo($idrequest);
+            if (isset($idRequest)) {
+                $requestinfo= $this->request_model->getRequestInfo($idRequest);
                 $data["email"] = $requestinfo->email;
                 $data["firstname"] = $requestinfo->firstname;
                 $data["lastname"] = $requestinfo->lastname;
@@ -51,7 +67,7 @@ class Admin extends CI_Controller {
                 $data["email"] = NULL;
                 $data["firstname"] = NULL;
                 $data["lastname"] = NULL;
-                $data["expires"] = date('Y/m/d', strtotime('+1 months')); 
+                $data["expires"] = date('Y/m/d', strtotime('+1 months'));
             }
             $this->form_validation->set_rules('firstname', 'First Name', 'required');
             $this->form_validation->set_rules('lastname', 'Last Name', 'required');
@@ -68,7 +84,7 @@ class Admin extends CI_Controller {
                     redirect(base_url().'admin/list_users');
                 }else{
                     $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
-                    $clean["request_id"] = isset($idrequest) ? $idrequest : NULL;
+                    $clean["request_id"] = isset($idRequest) ? $idRequest : NULL;
                     $id = $this->user_model->insertUser($clean);
                     $token = $this->user_model->insertToken($id);
                     $dest = $this->input->post('email');
@@ -81,7 +97,7 @@ class Admin extends CI_Controller {
                     $message = '';
                     $message .= "<strong>You have been invited to Paracou-Ex</strong><br>";
                     $message .= '<strong>Please click:</strong> ' . $link;
-                    
+
                     $catch = $this->peemail->sendMail($dest,"Invitation Paracou-Ex",$message);
                     if ($catch) {
                         echo "E-mail sent at $dest";
@@ -101,6 +117,43 @@ class Admin extends CI_Controller {
             }
         }
     }
+
+    public function edit_user($id, $request_id = NULL){
+        $this->checkRights();
+        $userinfo = $this->user_model->getUserInfo($id);
+        if (isset($request_id)) {
+            $requestinfo= $this->request_model->getRequestInfo($request_id);
+            $data["first_name"] = $requestinfo->firstname;
+            $data["last_name"] = $requestinfo->lastname;
+            $data["expires"] = $requestinfo->timeline;
+        }
+        $data["id"] = $id;
+        if ($userinfo) {
+            $data['userinfo'] = $userinfo;
+
+            $this->form_validation->set_rules('first_name', 'First Name', 'required');
+            $this->form_validation->set_rules('last_name', 'Last Name', 'required');
+            $this->form_validation->set_rules('expires', 'Expires', 'valid_date');
+
+            if ($this->form_validation->run() != FALSE) {
+                $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
+                $clean['user_id'] = $id;
+                $clean['request_id'] = $request_id;
+                $this->user_model->editUserInfo($clean);
+                redirect(base_url().'admin/list_users/');
+
+            } else {
+                $this->load->view('admin/header');
+                $this->load->view('admin/edit_user', $data);
+                $this->load->view('admin/footer');
+            }
+        } else {
+            $this->session->set_flashdata('error_message',"The user n°$id doesn't exist");
+            redirect(base_url().'admin/list_users/');
+        }
+
+    }
+
     public function delete_user($id){
         $this->checkRights();
         $userinfo = $this->user_model->getUserInfo($id);
@@ -114,7 +167,27 @@ class Admin extends CI_Controller {
         }
         redirect(base_url().'admin/list_users/');
     }
-    
+
+    public function list_requests(){
+        #### Account verifications ####
+        $this->checkRights();
+        $get = $this->input->get();
+
+        $flash['flash_message'] = $this->session->flashdata('error_message');
+        $requests = $this->request_model->getRequestList(); // get requests list
+        $data['requests'] = $requests;
+
+        if(isset($get["csv"])){
+            $array = json_decode(json_encode($requests), True);
+            $this->exports_array_csv($array,"Request_list");
+        }
+
+        #### Views ####
+        $this->load->view('admin/header',$flash);
+        $this->load->view('admin/list_requests', $data);
+        $this->load->view('admin/footer');
+    }
+
     public function show_request($id){
         $this->checkRights();
         $requestinfo = $this->request_model->getRequestInfo($id);
@@ -135,7 +208,7 @@ class Admin extends CI_Controller {
         $this->load->view('admin/show_request', $data);
         $this->load->view('admin/footer');
     }
-    
+
     public function accept_request($id){
         $this->checkRights();
         $requestinfo = $this->request_model->getRequestInfo($id);
@@ -152,7 +225,7 @@ class Admin extends CI_Controller {
             $clean["id"] = $id;
             $clean["accepted"] = date('Y/m/d');
             $this->request_model->updateRequestInfo($clean);
-            redirect(base_url()."admin/add/$id");
+            redirect(base_url()."admin/add_user/$id");
         } else if (isset($requestinfo->accepted)) {
             $this->session->set_flashdata('error_message',"The request n°$id is already accepted");
             redirect(base_url().'admin/list_requests/');
@@ -161,7 +234,7 @@ class Admin extends CI_Controller {
             redirect(base_url().'admin/list_requests/');
         }
     }
-    
+
     public function decline_request($id){
         $this->checkRights();
         $requestinfo = $this->request_model->getRequestInfo($id);
@@ -177,99 +250,29 @@ class Admin extends CI_Controller {
             redirect(base_url().'admin/list_requests/');
         }
     }
-    
-    public function list_users(){
-        
-        #### Account verifications ####
-        $this->checkRights();
-        
-        $flash['flash_message'] = $this->session->flashdata('error_message');
-        $data['users'] = $this->user_model->getUserList(); // get User list
 
-        #### Views ####
-        $this->load->view('admin/header',$flash);
-        $this->load->view('admin/list_users', $data);
-        $this->load->view('admin/footer');
-    }
-    
-    public function edit_user($id, $request_id = NULL){
-        $this->checkRights();
-        $userinfo = $this->user_model->getUserInfo($id);
-        if (isset($request_id)) {
-            $requestinfo= $this->request_model->getRequestInfo($request_id);
-            $data["first_name"] = $requestinfo->firstname;
-            $data["last_name"] = $requestinfo->lastname;
-            $data["expires"] = $requestinfo->timeline;
-        } 
-        $data["id"] = $id;
-        if ($userinfo) {
-            $data['userinfo'] = $userinfo;
-            
-            $this->form_validation->set_rules('first_name', 'First Name', 'required');
-            $this->form_validation->set_rules('last_name', 'Last Name', 'required');
-            $this->form_validation->set_rules('expires', 'Expires', 'valid_date');
-            
-            if ($this->form_validation->run() != FALSE) {
-                $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
-                $clean['user_id'] = $id;
-                $clean['request_id'] = $request_id;
-                $this->user_model->editUserInfo($clean);
-                redirect(base_url().'admin/list_users/');
-                
-            } else {
-                $this->load->view('admin/header');
-                $this->load->view('admin/edit_user', $data);
-                $this->load->view('admin/footer');
-            }
-        } else {
-            $this->session->set_flashdata('error_message',"The user n°$id doesn't exist");
-            redirect(base_url().'admin/list_users/');
-        }
-
-    }
-    
-    public function list_requests(){
-        #### Account verifications ####
-        $this->checkRights();
-        $get = $this->input->get();
-        
-        $flash['flash_message'] = $this->session->flashdata('error_message');
-        $requests = $this->request_model->getRequestList(); // get requests list
-        $data['requests'] = $requests;
-
-        if(isset($get["csv"])){
-            $array = json_decode(json_encode($requests), True);
-            $this->exports_array_csv($array,"Request_list");
-        }
-        
-        #### Views ####
-        $this->load->view('admin/header',$flash);
-        $this->load->view('admin/list_requests', $data);
-        $this->load->view('admin/footer');
-    }
-    
     public function right_error(){
         $this->load->view('admin/header');
         $this->load->view('admin/error');
         $this->load->view('admin/footer');
     }
-    
+
     public function exports_array_csv($data,$name){
-                    
+
             header("Content-type: application/csv");
             header("Content-Disposition: attachment; filename=\"$name".".csv\"");
             header("Pragma: no-cache");
             header("Expires: 0");
 
             $handle = fopen('php://output', 'w');
-            
+
             foreach ($data as $data) {
                 fputcsv($handle, $data);
             }
                 fclose($handle);
             exit;
         }
-    
+
     public function base64url_encode($data) {
       return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
@@ -278,4 +281,3 @@ class Admin extends CI_Controller {
       return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
     }
 }
-
