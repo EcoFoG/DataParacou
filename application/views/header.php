@@ -20,11 +20,8 @@
         <script type="text/javascript" src="/public/js/jquery.min.js"></script>
         <script type="text/javascript" src="/public/js/jquery-ui.js"></script>
         <script type="text/javascript" src="/public/js/moment.min.js"></script>
-        <script type="text/javascript" src="/public/js/daterangepicker.js"></script>
         <script type="text/javascript" src="/public/js/jquery.bootpag.min.js"></script>
-        <script type="text/javascript" src="/public/js/pdfmake.min.js"></script>
         <script type="text/javascript" src="/public/js/select2.js"></script>
-        <script type="text/javascript" src="/public/js/vfs_fonts.js"></script>
     </head>
     <body>
     <!--[if lt IE 8]>
