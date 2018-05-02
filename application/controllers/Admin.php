@@ -86,6 +86,8 @@ class Admin extends CI_Controller {
                     $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
                     $clean["request_id"] = isset($idRequest) ? $idRequest : NULL;
                     $id = $this->user_model->insertUser($clean);
+
+                    !(isset($idRequest)) ?: $this->request_model->acceptRequest($idRequest); // Accept request if user is added
                     $token = $this->user_model->insertToken($id);
                     $dest = $this->input->post('email');
 
@@ -97,6 +99,7 @@ class Admin extends CI_Controller {
                     $message = '';
                     $message .= "<strong>You have been invited to Paracou-Ex</strong><br>";
                     $message .= '<strong>Please click:</strong> ' . $link;
+                    $panel3 = "<a href='".base_url()."admin/list_users/'>Retour à la liste</a>";
 
                     $catch = $this->peemail->sendMail($dest,"Invitation Paracou-Ex",$message);
                     if ($catch) {
@@ -110,6 +113,7 @@ class Admin extends CI_Controller {
                     echo $panel1;
                     echo $message; //send this in email
                     echo $panel2;
+                    echo $panel3;
                     exit;
 
 
@@ -140,7 +144,9 @@ class Admin extends CI_Controller {
                 $clean['user_id'] = $id;
                 $clean['request_id'] = $request_id;
                 $this->user_model->editUserInfo($clean);
+                !(isset($request_id)) ?: $this->request_model->acceptRequest($request_id); // Accept request if user is added
                 redirect(base_url().'admin/list_users/');
+
 
             } else {
                 $this->load->view('admin/header');
@@ -217,14 +223,13 @@ class Admin extends CI_Controller {
             if($user_duplicated){
                 $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
                 $clean["id"] = $id;
-                $clean["accepted"] = date('Y/m/d');
                 $this->request_model->updateRequestInfo($clean);
                 redirect(base_url()."admin/edit_user/user-$user_duplicated->id/request-$id");
             }
             $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
             $clean["id"] = $id;
-            $clean["accepted"] = date('Y/m/d');
             $this->request_model->updateRequestInfo($clean);
+            $this->session->set_flashdata('accept',TRUE);
             redirect(base_url()."admin/add_user/$id");
         } else if (isset($requestinfo->accepted)) {
             $this->session->set_flashdata('error_message',"The request n°$id is already accepted");
@@ -239,9 +244,8 @@ class Admin extends CI_Controller {
         $this->checkRights();
         $requestinfo = $this->request_model->getRequestInfo($id);
         if (($requestinfo) && !isset($requestinfo->accepted)) {
-            $d["id"] = $id;
-            $d["accepted"] = 'Declined';
-            $this->request_model->updateRequestInfo($d);
+            $this->request_model->declineRequest($id);
+            redirect(base_url().'admin/list_requests/');
         } else if (isset($requestinfo->accepted)) {
             $this->session->set_flashdata('error_message',"The request n°$id is already accepted");
             redirect(base_url().'admin/list_requests/');

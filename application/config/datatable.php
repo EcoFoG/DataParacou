@@ -1,32 +1,30 @@
 <?php
-
-$tableRelativeFontSize = 80; // En %
 // Colonnes à aller chercher dans la base de données
 $config['columns'] = array(
-    array('db' => 'Forest', 'dt' => 0 ),
-    array('db' => 'Plot', 'dt' => 1 ),
-    array('db' => 'SubPlot', 'dt' => 2 ),
-    array('db' => 'TreeFieldNum', 'dt' => 3 ),
-    array('db' => 'PlotSurface', 'dt' => 4 ),
-    array('db' => 'idTree', 'dt' => 5 ),
-    array('db' => 'Xfield', 'dt' => 6 ),
-    array('db' => 'Yfield', 'dt' => 7 ),
-    array('db' => 'Xutm', 'dt' => 8 ),
-    array('db' => 'Yutm', 'dt' => 9 ),
-    array('db' => 'Lat', 'dt' => 10 ),
-    array('db' => 'Lon', 'dt' => 11 ),
-    array('db' => 'VernName', 'dt' => 12 ),
-    array('db' => 'Circ', 'dt' => 13 ),
-    array('db' => 'CircCorr', 'dt' => 14 ),
-    array('db' => 'CodeAlive', 'dt' => 15 ),
-    array('db' => 'CodeMeas', 'dt' => 16 ),
-    array('db' => 'CensusYear', 'dt' => 17 ),
-    array('db' => 'Family', 'dt' => 18 ),
-    array('db' => 'Genus', 'dt' => 19 ),
-    array('db' => 'Species', 'dt' => 20 ),
-    array('db' => 'BotaSource', 'dt' => 21 ),
-    array('db' => 'BotaCertainty', 'dt' => 22 )
-);
+    'Forest',
+    'Plot',
+    'SubPlot',
+    'TreeFieldNum',
+    'PlotSurface',
+    'idTree',
+    'Xfield',
+    'Yfield',
+    'Xutm',
+    'Yutm',
+    'Lat',
+    'Lon',
+    'VernName',
+    'Circ',
+    'CircCorr',
+    'CodeAlive',
+    'CodeMeas',
+    'CensusYear',
+    'Family',
+    'Genus',
+    'Species',
+    'BotaSource',
+    'BotaCertainty'
+  );
 
 // Nom des headers (à ordonner par rapport aux colonnes),
 // "<Nom colonne>" => "<Annotation au survol de la souris>"
@@ -55,6 +53,8 @@ $config["headers"] = array(
     "Botanical source" => "Bota = a botanist has identified the tree ; Vern = botanical name is obtained from Vern Name",
     "Safety index"  => "-1 no identification ; 0 unknown family ; 1 unknown genus ; 2 unknown species ; 3 known species but low confidence ; 4 known species with high confidence"
 );
+
+$tableRelativeFontSize = 80; // Taille relative de la table en % (modifie aussi la taille de la police)
 
 $config['table_template'] = array (
     'table_open'          => "<table id=\"datatable\" class=\"table table-responsive table-striped table-bordered\" width=\"100%\" style=\"font-size: $tableRelativeFontSize%;\" cellspacing=\"0\">",

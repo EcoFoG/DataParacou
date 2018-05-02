@@ -8,15 +8,6 @@ class Data_model extends CI_Model {
         parent::__construct();
         $this->paracouDB = $this->load->database('paracou', TRUE);
     }
-    #### Transforme le tableau des colonnes en tableau à nom simples ####
-    private function pluck( $a, $prop ){
-      $out = array();
-      for ( $i=0, $len=count($a) ; $i<$len ; $i++ ) {
-        $out[] = $a[$i][$prop];
-      }
-      return $out;
-    }
-
     #### Génère la chaine de caractère $like pour le filtrage ####
     private function like($filters, $get){
         foreach($filters as $key => $value) {
@@ -53,7 +44,7 @@ class Data_model extends CI_Model {
     private function generateQueryString($columns = NULL, $filters, $get, $circMin, $circMax){
       $like = $this->generateLikeString($filters,$get);
       #### Query ####
-      $query =   "SELECT \"".implode("\", \"", $this->pluck($columns, 'db'))."\" " // implode : http://php.net/manual/fr/function.implode.php
+      $query =   "SELECT \"".implode("\", \"", $columns)."\" " // implode : http://php.net/manual/fr/function.implode.php
         . "FROM taparacou "
         . "WHERE \"Circ\" BETWEEN $circMin AND $circMax "
         . "$like "

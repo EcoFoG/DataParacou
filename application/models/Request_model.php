@@ -11,9 +11,9 @@ class Request_model extends CI_Model {
 
     public function insertRequest($d)
     {
-        $columns=implode(',',$d['Columns']);
-        $years=implode(',',$d['Years']);
-        $plots=implode(',',$d['Plot']);
+        $columns = isset($d['columns']) ? implode(',',$d['columns']) : NULL;
+        $years = isset($d['years']) ? implode(',',$d['years']) : NULL;
+        $plots = isset($d['plot']) ? implode(',',$d['plot']) : NULL;
 
         $string = array(
             'email'=>$d['email'],
@@ -34,7 +34,7 @@ class Request_model extends CI_Model {
         $this->db->query($q);
         return $this->db->insert_id();
     }
-    
+
     public function updateRequestInfo($d)
     {
         $d["specific_conditions"] = isset($d["specific_conditions"]) ? $d["specific_conditions"] : NULL;
@@ -59,6 +59,24 @@ class Request_model extends CI_Model {
 
     public function deleteRequest($id){
         $this->db->delete('requests', array('id' => $id));
+    }
+
+    public function acceptRequest($id){
+      $data = array(
+             'accepted' => date('Y/m/d')
+          );
+      $this->db->where('id', $id);
+      $this->db->update('requests', $data);
+
+    }
+
+    public function declineRequest($id){
+      $data = array(
+             'accepted' => "Declined"
+          );
+      $this->db->where('id', $id);
+      $this->db->update('requests', $data);
+
     }
 
     public function isDuplicate($email)

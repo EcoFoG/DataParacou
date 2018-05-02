@@ -382,9 +382,7 @@ class Main extends CI_Controller {
             if(!$userInfo){
                 redirect(base_url().'main/login');
             }
-            foreach($userInfo as $key=>$val){
-                $this->session->set_userdata($key, $val);
-            }
+            $this->session->set_userdata($key, $val);
             redirect(base_url().'main/');
         }
 

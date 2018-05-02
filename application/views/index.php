@@ -103,9 +103,6 @@
 
         var xhr; // Déclaration de l'objet ajax pour l'utilisation d'abort en cas d'appui sur apply alors que le tableau n'est pas chargé
 
-        /* Gestion des onglets sur les filtres (Jquery UI : https://jqueryui.com/tabs/) */
-        $("#tabs").tabs();
-
         /* Crée les input de selection multiple (Select2 : https://select2.org/) */
         $('.multiple').select2({
             closeOnSelect: false
@@ -133,7 +130,6 @@
             var row = $("<tr />");
             $("#datatable").append(row);
             <?php foreach($columns as $columnName){
-                $columnName = $columnName['db'];
                 echo "row.append($(\"<td>\" + rowData.$columnName + \"</td>\"))\n\t\t";
             } ?>
         }
@@ -246,18 +242,10 @@
 <br>
 <div class="container-fluid">
     <div id="tabs" class="card"><!-- https://getbootstrap.com/docs/4.0/components/card/ -->
-            <ul class="nav nav-tabs card-header-tabs">
-                <li class="nav-item">
-                  <a class="nav-link" href="#filters">Filters</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#spatial">Spatial</a>
-                </li>
-            </ul>
+            <div class="card-header">
+                  Filters
+            </div>
             <div class="card-body">
-                    <div id="spatial">
-
-                    </div>
                     <div id="filters">
                         <form id="formFilters" method="get" action="<?php echo base_url().'main/api_table' ?>">
                         <div class="form-group">
