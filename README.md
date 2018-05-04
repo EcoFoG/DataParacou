@@ -361,7 +361,7 @@ Identifiants serveur Kourou :
 [Filezilla](https://filezilla-project.org/)
 
 /var/www/
-![Capture d'écran filezilla](_posts/img/capt_ecran_filezilla.png)
+![Capture d'écran filezilla](_posts/2018/img/capt_ecran_filezilla.png)
 
 # Modifications avancées
 
@@ -406,10 +406,10 @@ Pour cela, sera détaillé le fonctionnement et la structure interne de l'applic
 [Architecture MVC](https://developer.mozilla.org/fr/Apps/Build/Architecture_d_une_application_web_moderne/MVC_architecture)
 
 Diagramme UML de l'application
-![Diagramme UML](_posts/img/UML.png)
+![Diagramme UML](_posts/2018/img/UML.png)
 
 Flow chart CodeIgniter
-![FlowChart](_posts/img/appflowchart.gif)
+![FlowChart](_posts/2018/img/appflowchart.gif)
 
 #### Modèles :
 - application/models/Data_model.php
