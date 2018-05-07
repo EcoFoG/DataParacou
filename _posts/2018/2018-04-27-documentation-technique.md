@@ -28,8 +28,14 @@ Les modifications simples peuvent s’effectuer à l’aide des fichiers de conf
 | database.php   | Identifiants des bases de données   |
 | pagination.php | Configuration de la pagination      |
 | routes.php     | Redirections URL vers controleur    |
+
 ## Modifier la table (datatable.php)
 
+#### Modifier le nom du site
+Le nom utilisé comme titre de la page et sur le menu de navigation est contenu dans la variable brandName définie dans datatable.php
+```php
+$config['brandName'] = "Data Paracou";
+```
 #### Colonnes à extraire
 La modification des colonnes à extraire s'effectue dans ce tableau :
 ```php

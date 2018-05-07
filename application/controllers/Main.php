@@ -80,13 +80,13 @@ class Main extends CI_Controller {
 
     private function getCircBoundaries(&$data, $paracouDB){
       $circDBMin = $this->cache->get('circDBMin');
-      $circDBMax = $this->cache->get('circDBMin');
-      if (!$circDBMin || !$circDBMax) {
+      $circDBMax = $this->cache->get('circDBMax');
+      if (!isset($circDBMin) || !isset($circDBMax)) {
           $circBoundaries = $this->data_model->getCircBoundaries();
           $data['circDBMax'] = $circBoundaries['circDBMax'];
           $data['circDBMin'] = $circBoundaries['circDBMin'];
-          $this->cache->save('circDBMin', $circBoundaries['circDBMax'], 86400);
-          $this->cache->save('circDBMax', $circBoundaries['circDBMin'], 86400);
+          $this->cache->save('circDBMax', $circBoundaries['circDBMax'], 86400);
+          $this->cache->save('circDBMin', $circBoundaries['circDBMin'], 86400);
       } else {
           $data['circDBMax'] = $circDBMax;
           $data['circDBMin'] = $circDBMin;

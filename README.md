@@ -17,6 +17,12 @@ L'application permet aux chercheurs de trier les données de Paracou à l'aide d
 DataParacou est développé en PHP sous le framework CodeIgniter
 
 # Fonctionnalités
+## Données
+### Filtrage des données
+
+
+## Gestion des utilisateurs
+
 
 # Modifications simples
 Les modifications simples peuvent s’effectuer à l’aide des fichiers de configurations situés dans « application/config » de la racine du projet
@@ -29,6 +35,12 @@ Les modifications simples peuvent s’effectuer à l’aide des fichiers de conf
 | pagination.php | Configuration de la pagination      |
 | routes.php     | Redirections URL vers controleur    |
 ## Modifier la table (datatable.php)
+
+#### Modifier le nom du site
+Le nom utilisé comme titre de la page et sur le menu de navigation est contenu dans la variable brandName définie dans datatable.php
+```php
+$config['brandName'] = "Data Paracou";
+```
 
 #### Colonnes à extraire
 La modification des colonnes à extraire s'effectue dans ce tableau :
