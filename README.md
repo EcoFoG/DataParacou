@@ -19,10 +19,22 @@ DataParacou est développé en PHP sous le framework CodeIgniter
 # Fonctionnalités
 ## Données
 ### Filtrage des données
-
-
+![Capture d'écran filtres](_posts/2018/img/capt_ecran_filtres.png)
+L'application contient un panneau de filtres on peut choisir plusieurs éléments dans chacun des filtres. En cliquant sur apply, la table des données s'actualise et affiche seulement les données qui correspondent aux caractéristiques choisies dans les filtres
+### Auto-complétion des filtres 
+![Capture d'écran autocomplétion](_posts/2018/img/capt_ecran_autocompletion.png)
+Lorsque l'on choisit un ou plusieurs éléments d'un filtre, les prochains choix seront limités aux éléments concordants de l'élément choisi précédemment(par exemple quand on choisit une parcelle, seules les années où la parcelle a été mesurée apparaitront dans le filtre "années")
+### Affichage des données
+![Capture d'écran affichage](_posts/2018/img/capt_ecran_affichage.png)
+Les données sont affichées sous forme de tableau, pour la prévisualisation avant l'exportation,
+on peut changer de page pour voir l'intégralité des données.
+### Exportation en CSV
+En cliquant sur "Export to CSV", on peut exporter les données en format CSV, le fichier sera nommé "ParacouDDMMYYYY.csv" correspondant à la date de l'exportation.
+### Sauvegarder l'état des filtres
+En cliquant sur "Save state" on obtient un lien qui garde en mémoire l'état des filtres dans le cas où on a besoin de récupérer les mêmes données
 ## Gestion des utilisateurs
-
+L'application permet la gestion des utilisateurs qui accèdent aux données.
+par le biais de requêtes d'accès et d'expiration des comptes
 
 # Modifications simples
 Les modifications simples peuvent s’effectuer à l’aide des fichiers de configurations situés dans « application/config » de la racine du projet
