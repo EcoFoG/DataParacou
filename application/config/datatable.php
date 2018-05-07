@@ -93,10 +93,6 @@ $config['filters'] = array(
         "Family" => "Family",
         "Genus" => "Genus",
         "Species" => "Species"
-    ),
-    "Bota" => array(
-        "BotaSource" => "Botanical source",
-        "BotaCertainty" => "Safety index"
     )
 );
 

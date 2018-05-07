@@ -67,7 +67,7 @@ class Main extends CI_Controller {
         $reducedFilters = call_user_func_array('array_merge', $filters);
         foreach ($reducedFilters as $key=>$value) { // Pour chaque filtre dans application/config/datatable.php
             $dataFilters[$key] = $this->cache->get('F'.$key); // Cherche dans le cache si les niveaux de filtres ne sont pas déjà enregistrés
-            if (!(isset($dataFilters[$key]))) { // Si ils n'existent pas
+            if (!isset($dataFilters[$key]) || empty($dataFilters[$key])) { // Si ils n'existent pas
                 $temp = $paracouDB->query("select \"$key\" from taparacou group by \"$key\" order by \"$key\"")->result_array(); // Prend les niveaux dans la base de données
                 foreach ($temp as $key2=>$value2) {
                     $temp[$key2] = $temp[$key2][$key];
