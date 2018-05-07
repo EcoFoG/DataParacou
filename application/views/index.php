@@ -144,20 +144,19 @@
             $("#datatable tbody").remove();
         }
 
-        var circMin, circMax, codeAlive, Plot, SubPlot, CensusYear, VernName, Family, Genus, Species, page, offset; // Variables globales des filtres du document
+        var <?php foreach ($reducedFilters as $key => $value) {
+            echo "$key, ";
+        }?>page, offset; // Variables globales des filtres du document
 
         /* Enregistre les filtres selectionnés dans des variables */
         function getFilters(){
             circMin = $("#circMin").val();
             circMax = $("#circMax").val();
-            codeAlive = $("#CodeAlive").select2('data').map(function (obj) { return obj.text; });
-            Plot = $("#Plot").select2('data').map(function (obj) { return obj.text; });
-            SubPlot = $("#SubPlot").select2('data').map(function (obj) { return obj.text; });
-            CensusYear = $("#CensusYear").select2('data').map(function (obj) { return obj.text; });
-            VernName = $("#VernName").select2('data').map(function (obj) { return obj.text; });
-            Family = $("#Family").select2('data').map(function (obj) { return obj.text; });
-            Genus = $("#Genus").select2('data').map(function (obj) { return obj.text; });
-            Species = $("#Species").select2('data').map(function (obj) { return obj.text; });
+            <?php 
+            foreach ($reducedFilters as $key => $value) {
+                echo "$key = $('#$key').select2('data').map(function (obj) { return obj.text; });";
+            }
+            ?>
         }
 
         /* Placement des tooltips sur les headers du tableau */
@@ -196,7 +195,9 @@
             xhr = $.ajax({ // Début de la requête ajax http://api.jquery.com/jquery.ajax/
                 url: "<?php echo base_url() ?>main/api_table", // Appelle la page fonction api_table dans application/controller/main.php
                 datatype: "json",
-                data: { circMin : circMin, circMax : circMax, codeAlive : codeAlive, Plot : Plot, SubPlot : SubPlot, CensusYear : CensusYear, VernName : VernName, Family : Family, Genus : Genus, Species : Species, page : page, offset : offset, apply : "apply"} // Passe les paramètres via la méthode get
+                data: {<?php foreach ($reducedFilters as $key => $value) {
+                    echo "$key : $key, ";
+                }?>page : page, offset : offset, apply : "apply"} // Passe les paramètres via la méthode get
             }).done(function(data){ // Evènement données reçues
                 data = JSON.parse(data); // Transforme JSON -> Array javascript
                 $('#page-selection').html(data.pagination_links);

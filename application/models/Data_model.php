@@ -11,14 +11,14 @@ class Data_model extends CI_Model {
     #### Génère la chaine de caractère $like pour le filtrage ####
     private function like($filters, $get){
         foreach($filters as $key => $value) {
-            if(isset($get[$value])){
-                $str = implode("|", $get[$value]);
+            if(isset($get[$key])){
+                $str = implode("|", $get[$key]);
             } else {
                 $str='';
             }
             if ($str != '') {
                 $binding = $str;
-                $like[$key] = "CAST(\"".$value."\" AS TEXT) SIMILAR TO '".$binding."'";
+                $like[$key] = "CAST(\"".$key."\" AS TEXT) SIMILAR TO '".$binding."'";
             }
         }
         $like = implode(" AND ",$like);
@@ -29,8 +29,8 @@ class Data_model extends CI_Model {
     private function generateLikeString($filters = NULL, $get = NULL){
       #### Create like string for the query ####
       $flag = count($filters);
-      foreach($filters as $value){
-         $flag = (isset($get[$value])) ? $flag-1: $flag;
+      foreach($filters as $key=>$value){
+         $flag = (isset($get[$key])) ? $flag-1: $flag;
       }
       $like = (count($filters) > $flag) ? $this->like($filters,$get) : ''; // Empty chain in $like if no filter is select
       return $like;

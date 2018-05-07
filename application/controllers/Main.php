@@ -122,9 +122,10 @@ class Main extends CI_Controller {
 
         #### Get levels of filters in the databases ####
         $data['dataFilters'] = $this->getFilters($filters, $paracouDB);
+        $data['reducedFilters'] = call_user_func_array('array_merge', $filters);
         $data['filters'] = $filters;
-        $data['circMax'] = !(empty($this->input->get('circMax'))) ? $this->input->get('circMax') : $defaultCircBoundaries['circMax']; // Opérateur ternaire : http://php.net/manual/fr/language.operators.comparison.php#language.operators.comparison.ternary
-        $data['circMin'] = !(empty($this->input->get('circMin'))) ? $this->input->get('circMin') : $defaultCircBoundaries['circMin']; // Si circMin passé dans l'url, l'enregistrer dans la variable $circMin sinon utiliser la valeur de $defaultCircBoundaries (référence fonction index application/controller/main.php)
+        $data['circMax'] = !(empty($this->input->get('circMax'))) ? $this->input->get('circMax') : $data['defaultCircBoundaries']['circMax']; // Opérateur ternaire : http://php.net/manual/fr/language.operators.comparison.php#language.operators.comparison.ternary
+        $data['circMin'] = !(empty($this->input->get('circMin'))) ? $this->input->get('circMin') : $data['defaultCircBoundaries']['circMin']; // Si circMin passé dans l'url, l'enregistrer dans la variable $circMin sinon utiliser la valeur de $defaultCircBoundaries (référence fonction index application/controller/main.php)
         #### Get Circ boundaries in the database ####
         $this->getCircBoundaries($data, $paracouDB);
 
