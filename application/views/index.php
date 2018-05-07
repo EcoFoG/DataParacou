@@ -212,7 +212,7 @@
 </script>
 <!-- NAVIGATION -->
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <a href=<?php echo base_url();?> class="navbar-brand">Data Paracou</a> <!-- Titre affiché à gauche de la nav -->
+  <a href=<?php echo base_url();?> class="navbar-brand"><?php echo $brandName; ?></a> <!-- Titre affiché à gauche de la nav -->
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>

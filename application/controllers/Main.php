@@ -5,6 +5,7 @@ class Main extends CI_Controller {
 
     public $status;
     public $roles;
+    private $header;
 
     function __construct(){ // Constructeur http://php.net/manual/fr/language.oop5.decon.php
         parent::__construct();
@@ -30,6 +31,9 @@ class Main extends CI_Controller {
         $this->load->driver('cache', array('adapter' => 'file'));
         $this->load->library('pagination');
         $this->load->dbutil();
+        $this->config->load("datatable");
+
+        $this->header['brandName'] = $this->config->item("brandName");
 
     }
     // Redirections
@@ -50,7 +54,6 @@ class Main extends CI_Controller {
     // Put config files in variables
     private function configTable(&$data, &$filters, &$columns){
         /* Configuration of the data table in application/config/datatable.php */
-        $this->config->load("datatable");
         $tmpl = $this->config->item("table_template");
         $data['headers'] = $this->config->item("headers");
         $data['columns'] = $this->config->item("columns");
@@ -61,21 +64,21 @@ class Main extends CI_Controller {
         $this->table->set_template($tmpl); // Apply template to the generated table
     }
     private function getFilters(&$data, $filters, $paracouDB){
-            foreach ($filters as $value) { // Pour chaque filtre dans application/config/datatable.php
-                $data['F'.$value] = $this->cache->get('F'.$value); // Cherche dans le cache si les niveaux de filtres ne sont pas déjà enregistrés
-                if (!($data['F'.$value])) { // Si ils n'existent pas
-                    $temp = $paracouDB->query("select \"$value\" from taparacou group by \"$value\" order by \"$value\"")->result_array(); // Prend les niveaux dans la base de données
-                    foreach($temp as $key2=>$value2) {
-                        $temp[$key2] = $temp[$key2][$value];
-                    }
-                    $data['F'.$value] = $temp; // Enregistre dans un tableau avec la clé F*filtre* (FCensusYear, FGenus ...)
-                    $this->cache->save('F'.$value, $data['F'.$value], 0); // Enregistre dans le cache
+        foreach ($filters as $value) { // Pour chaque filtre dans application/config/datatable.php
+            $data['F'.$value] = $this->cache->get('F'.$value); // Cherche dans le cache si les niveaux de filtres ne sont pas déjà enregistrés
+            if (!($data['F'.$value])) { // Si ils n'existent pas
+                $temp = $paracouDB->query("select \"$value\" from taparacou group by \"$value\" order by \"$value\"")->result_array(); // Prend les niveaux dans la base de données
+                foreach($temp as $key2=>$value2) {
+                    $temp[$key2] = $temp[$key2][$value];
                 }
+                $data['F'.$value] = $temp; // Enregistre dans un tableau avec la clé F*filtre* (FCensusYear, FGenus ...)
+                $this->cache->save('F'.$value, $data['F'.$value], 0); // Enregistre dans le cache
             }
-            $data['filters'] = $filters;
+        }
+        $data['filters'] = $filters;
     }
-    private function getCircBoundaries(&$data, $paracouDB){
 
+    private function getCircBoundaries(&$data, $paracouDB){
       $circDBMin = $this->cache->get('circDBMin');
       $circDBMax = $this->cache->get('circDBMin');
       if (!$circDBMin || !$circDBMax) {
@@ -121,7 +124,7 @@ class Main extends CI_Controller {
         $this->getCircBoundaries($data,$paracouDB);
 
         #### Views ####
-        $this->load->view('header');
+        $this->load->view('header', $this->header);
         $this->load->view('index', $data);
         $this->load->view('footer');
     }
@@ -333,7 +336,7 @@ class Main extends CI_Controller {
         $this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');
 
         if ($this->form_validation->run() == FALSE) {
-            $this->load->view('header');
+            $this->load->view('header', $this->header);
             $this->load->view('complete', $data);
             $this->load->view('footer');
         }else{
@@ -369,7 +372,7 @@ class Main extends CI_Controller {
         $this->form_validation->set_rules('password', 'Password', 'required');
 
         if($this->form_validation->run() == FALSE) {
-            $this->load->view('header');
+            $this->load->view('header', $this->header);
             $this->load->view('login');
             $this->load->view('footer');
         }else{
@@ -382,7 +385,10 @@ class Main extends CI_Controller {
             if(!$userInfo){
                 redirect(base_url().'main/login');
             }
-            $this->session->set_userdata($key, $val);
+            foreach ($userInfo as $key => $val) {
+                $this->session->set_userdata($key, $val);
+            }
+            
             redirect(base_url().'main/');
         }
 
@@ -419,7 +425,7 @@ class Main extends CI_Controller {
                 $data[$value] = $paracouDB->query("select \"$value\" from taparacou group by \"$value\" order by \"$value\"")->result_array();
             }
 
-            $this->load->view('header');
+            $this->load->view('header', $this->header);
             $this->load->view('request',$data);
             $this->load->view('footer');
         }else{
@@ -433,7 +439,7 @@ class Main extends CI_Controller {
                 redirect(base_url().'main/login');
             } else {
                 $requestInfo = $this->request_model->getRequestInfo($requestId);
-                $this->load->view('header');
+                $this->load->view('header', $this->header);
                 print_r($requestInfo);
                 echo '<br>Your request had been taken, you will be contacted by e-mail when accepted <br>'
                 . '<a href="'. base_url().'/main/">Back to login</a>';
@@ -456,7 +462,7 @@ class Main extends CI_Controller {
         $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
 
         if($this->form_validation->run() == FALSE) {
-            $this->load->view('header');
+            $this->load->view('header', $this->header);
             $this->load->view('forgot');
             $this->load->view('footer');
         }else{
@@ -514,7 +520,7 @@ class Main extends CI_Controller {
         $this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');
 
         if ($this->form_validation->run() == FALSE) {
-            $this->load->view('header');
+            $this->load->view('header', $this->header);
             $this->load->view('reset_password', $data);
             $this->load->view('footer');
         }else{
