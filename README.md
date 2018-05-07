@@ -158,20 +158,28 @@ $config['table_template'] = array (
 `$tableRelativeFontSize` est la variable qui détermine quelle taille prendra le tableau sur l'écran, plus sa valeur est petite plus la table sera petite.
 
 #### Filtres à utiliser
-C'est le nom dans la base de filtres qui seront utilisés dans la requête SQL
+Pour changer les filtres qui seront affichés dans le panneau "filters",
+Les filtres sont divisés en catégories, une catégorie est une colonne de filtres.
 ```php
 $config['filters'] = array(
-    "Plot",
-    "CodeAlive",
-    "CensusYear",
-    "VernName",
-    "Family",
-    "Species",
-    "Genus"
+    "Tree" => array(
+        "CodeAlive" => "Status"
+    ),
+    "Division" => array(
+        "Forest" => "Forest",
+        "Plot" => "Plot",
+        "SubPlot" => "Subplot",
+        "CensusYear" => "Census year"
+    ),
+    "Taxon" => array(
+        "VernName" => "Vernacular name",
+        "Family" => "Family",
+        "Genus" => "Genus",
+        "Species" => "Species"
+    )
 );
-```
 
-Modifier ce tableau peut causer des erreurs, il sera explicité dans la partie modifications complexe
+```
 
 #### Bornes par défaut de Circ
 Ce sont les bornes pré-sélectionnées de Circ pour les filtres
