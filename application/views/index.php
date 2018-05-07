@@ -1,9 +1,6 @@
-<?php
-    $circMax = !(empty($this->input->get('circMax'))) ? $this->input->get('circMax') : $defaultCircBoundaries['circMax']; // Opérateur ternaire : http://php.net/manual/fr/language.operators.comparison.php#language.operators.comparison.ternary
-    $circMin = !(empty($this->input->get('circMin'))) ? $this->input->get('circMin') : $defaultCircBoundaries['circMin']; // Si circMin passé dans l'url, l'enregistrer dans la variable $circMin sinon utiliser la valeur de $defaultCircBoundaries (référence fonction index application/controller/main.php)
-?>
 <script type="text/javascript">
     $(document).ready(function() {
+    $('#Circ').prependTo("#Tree"); // Circ ne fait pas partie du tableau filters alors il faut le placer manuellement dans la catégorie Tree
       $('.multiple').on('select2:close', function (e){
                   var VernNameObj = $("#VernName").select2('data');
                   var VernNamesSelected = VernNameObj.map(function (obj) {
@@ -129,7 +126,8 @@
         function drawRow(rowData) {
             var row = $("<tr />");
             $("#datatable").append(row);
-            <?php foreach($columns as $columnName){
+            <?php 
+            foreach ($columns as $columnName) {
                 echo "row.append($(\"<td>\" + rowData.$columnName + \"</td>\"))\n\t\t";
             } ?>
         }
@@ -164,11 +162,11 @@
 
         /* Placement des tooltips sur les headers du tableau */
         <?php
-            foreach($headers as $key=>$value){
-                if ($value) {
-                    echo "\$(\"th:contains('$key')\").attr(\"data-toggle\",\"tooltip\").attr(\"title\",\"$value\").append(\"<div class='annoted-header'>\");\n"; // Attribue les valeurs de /application/config/datatable.php à chaque header
-                }
+        foreach ($headers as $key=>$value) {
+            if ($value) {
+                echo "\$(\"th:contains('$key')\").attr(\"data-toggle\",\"tooltip\").attr(\"title\",\"$value\").append(\"<div class='annoted-header'>\");\n"; // Attribue les valeurs de /application/config/datatable.php à chaque header
             }
+        }
         ?>
 
         /* Evènement clic sur save */
@@ -223,15 +221,15 @@
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Help</a>
           <div class="dropdown-menu">
-            <a class="dropdown-item" href=<?php echo "\"".base_url()."public/pdf/Paracou_data_dictionnary.pdf\"";?>>Data dictionnary</a></li> <!-- Lien vers le data dictionnary -->
+            <a class="dropdown-item" href=<?php echo "\"".base_url()."public/pdf/Paracou_data_dictionnary.pdf\"";?>>Data dictionnary</a> <!-- Lien vers le data dictionnary -->
           </div>
         </li>
-            <!-- Vous pouvez rajouter des liens ici / doc : https://www.w3schools.com/tags/att_a_href.asp -->
+        <!-- Vous pouvez rajouter des liens ici / doc : https://www.w3schools.com/tags/att_a_href.asp -->
 
     </ul>
     <form class="navbar-text form-inline">
         <?php
-        if($role == "admin"){ // Si le role de l'utilisateur est "admin" afficher le lien "Admin" dans la nav
+        if ($role == "admin") { // Si le role de l'utilisateur est "admin" afficher le lien "Admin" dans la nav
             $url_admin = base_url().'admin/';
             echo "<a class=\"m-3\" href='$url_admin'>Admin</a>";
         } ?>
@@ -250,142 +248,48 @@
                         <form id="formFilters" method="get" action="<?php echo base_url().'main/api_table' ?>">
                         <div class="form-group">
                             <div class="row">
-                                <div class="col-lg-4 col-xl-4 col-sm-12 col-md-12">
-                                <label>Circumference</label><br>
-                                <div class="row">
-                                    <div class="col">
-                                        <label for="circMin">Min</label>
-                                        <input type="text" class="sliderValue form-control" name="circMin" id="circMin" data-index="0" value="<?php echo $circMin ?>" />
+                                <div id="Circ">
+                                    <label>Circumference</label>
+                                    <div class="row">
+                                        <div class="col">
+                                            <label for="circMin">Min</label>
+                                            <input type="text" class="sliderValue form-control" name="circMin" id="circMin" data-index="0" value="<?php echo $circMin?>" />
+                                        </div>
+                                        <div class="col">
+                                            <label for="circMax">Max</label>
+                                            <input type="text" class="sliderValue form-control" name="circMax" id="circMax" data-index="1" value="<?php echo $circMax?>" />
+                                        </div>
                                     </div>
-                                    <div class="col">
-                                        <label for="circMax">Max</label>
-                                        <input type="text" class="sliderValue form-control" name="circMax" id="circMax" data-index="1" value="<?php echo $circMax ?>" />
-                                    </div>
+                                    <br>
+                                    <div id="slider"></div>
+                                    <br>
                                 </div>
-                                <br>
-                                <div id="slider"></div>
-                                <br>
-                                <label for="CodeAlive[]">Status</label>
-                                <select class="multiple form-control" name="CodeAlive[]" id="CodeAlive" multiple="multiple" style="width:100%;">
-                                    <?php
-                                            /* Récupère les options des filtres passés dans l'URL et les affiche en tant qu'options sélectionnés (pour save state) */
-                                            if (isset($get["CodeAlive"])) {
-                                                $codeAliveInter = array_intersect($FCodeAlive,$get["CodeAlive"]);
-                                            }
-                                        foreach ($FCodeAlive as $key=>$status) { // Récupère les options des filtres depuis la base de données (variable data['F'.filters] dans main.php)
-                                            if (isset($codeAliveInter[$key]) && $codeAliveInter[$key] == $FCodeAlive[$key]) {
-                                                echo '<option selected="selected">'.$status.'</option>';
+                                <?php
+                                foreach ($filters as $key => $categorie) {
+                                    echo '<div id="'.$key.'" class="col-lg col-xl col-sm-12 col-md-12">';
+                                    echo "\n";
+                                    foreach ($categorie as $dbName => $labelName) {
+                                        echo '<label for="'.$dbName.'[]">'.$labelName.'</label>';
+                                        echo "\n";
+                                        echo '<select class="multiple form-control" name="'.$dbName.'[]" id="'.$dbName.'" multiple="multiple" style="width:100%;">';
+                                        echo "\n";
+                                        /* Récupère les options des filtres passés dans l'URL et les affiche en tant qu'options sélectionnés (pour save state) */
+                                        if (isset($get[$dbName])) {
+                                            $inter[$dbName] = array_intersect($dataFilters[$dbName], $get[$dbName]);
+                                        }
+                                        foreach ($dataFilters[$dbName] as $key2=>$value) { // Récupère les options des filtres depuis la base de données (variable data['dataFilters'] dans main.php)
+                                            if (isset($inter[$dbName][$key2]) && $inter[$dbName][$key2] == $dataFilters[$dbName][$key2]) {
+                                                echo '<option selected="selected">'.$value.'</option>';
                                             } else {
-                                                echo '<option>'.$status.'</option>';
+                                                echo '<option>'.$value.'</option>';
                                             }
-
-                                        } ?>
-                                </select>
-                                </div>
-                                <div class="col-lg-4 col-xl-4 col-sm-12 col-md-12">
-                                    <label for="Plot[]">Plots </label>
-                                    <select class="multiple form-control" name="Plot[]" id="Plot" multiple="multiple" style="width:100%;">
-                                        <?php
-                                             if (isset($get["Plot"])) {
-                                                $PlotInter = array_intersect($FPlot,$get["Plot"]);
-                                            }
-                                            foreach ($FPlot as $key=>$plot) {
-                                                if (isset($PlotInter[$key]) && $PlotInter[$key] == $FPlot[$key]) {
-                                                    echo '<option selected="selected">'.$plot.'</option>';
-                                                } else {
-                                                    echo '<option>'.$plot.'</option>';
-                                                }
-                                            } ?>
-                                    </select>
-                                    <label for="SubPlot[]">Subplot </label>
-                                    <select class="multiple form-control" name="SubPlot[]" id="SubPlot" multiple="multiple" style="width:100%;">
-                                         <?php
-                                            if (isset($get["SubPlot"])) {
-                                                $SubPlotinter = array_intersect($FSubPlot,$get["SubPlot"]);
-                                            }
-                                            foreach ($FSubPlot as $key=>$subplot) {
-                                                if (isset($SubPlotinter[$key]) && $SubPlotinter[$key] == $FSubPlot[$key]) {
-                                                    echo '<option selected="selected">'.$subplot.'</option>';
-                                                } else {
-                                                    echo '<option>'.$subplot.'</option>';
-                                                }
-                                            }?>
-                                    </select>
-                                    <label for="CensusYear[]">Census year</label>
-                                    <select class="multiple form-control" name="CensusYear[]" id="CensusYear" multiple="multiple" style="width:100%;">
-                                        <?php
-                                             if (isset($get["CensusYear"])) {
-                                                $YearInter = array_intersect($FCensusYear,$get["CensusYear"]);
-                                            }
-                                            foreach ($FCensusYear as $key=>$year) {
-                                                if (isset($YearInter[$key]) && $YearInter[$key] == $FCensusYear[$key]) {
-                                                    echo '<option selected="selected">'.$year.'</option>';
-                                                } else {
-                                                    echo '<option>'.$year.'</option>';
-                                                }
-                                            }?>
-                                    </select>
-                                </div>
-                                <div class="col-md-4 col-xl-4 col-sm-12 col-md-12">
-                                    <label for="VernName[]">Vernacular name </label>
-                                    <select class="multiple form-control" id="VernName" name="VernName[]" multiple="multiple" style="width:100%;">
-                                        <?php
-                                             if (isset($get["VernName"])) {
-                                                $VernInter = array_intersect($FVernName,$get["VernName"]);
-                                            }
-                                            foreach ($FVernName as $key=>$vernname) {
-                                                if (isset($VernInter[$key]) && $VernInter[$key] == $FVernName[$key]) {
-                                                    echo '<option selected="selected">'.$vernname.'</option>';
-                                                } else {
-                                                    echo '<option>'.$vernname.'</option>';
-                                                }
-                                            }?>
-                                    </select>
-                                    <label for="Family[]">Family </label>
-                                    <select class="multiple form-control" id="Family" name="Family[]" multiple="multiple" style="width:100%;">
-                                        <?php
-                                             if (isset($get["Family"])) {
-                                                $FamilyInter = array_intersect($FFamily,$get["Family"]);
-                                            }
-                                            foreach ($FFamily as $key=>$family) {
-                                                if (isset($FamilyInter[$key]) && $FamilyInter[$key] == $FFamily[$key]) {
-                                                    echo '<option selected="selected">'.$family.'</option>';
-                                                } else {
-                                                    echo '<option>'.$family.'</option>';
-                                                }
-                                            }?>
-                                    </select>
-                                    <label for="Genus[]">Genus </label>
-                                    <select class="multiple form-control" id="Genus" name="Genus[]" multiple="multiple" style="width:100%;">
-                                        <?php
-                                             if (isset($get["Genus"])) {
-                                                $GenusInter = array_intersect($FGenus,$get["Genus"]);
-                                            }
-                                            foreach ($FGenus as $key=>$genus) {
-                                                if (isset($GenusInter[$key]) && $GenusInter[$key] == $FGenus[$key]) {
-                                                    echo '<option selected="selected">'.$genus.'</option>';
-                                                } else {
-                                                    echo '<option>'.$genus.'</option>';
-                                                }
-                                            }?>
-                                    </select>
-                                    <br>
-                                    <label for="Species[]">Species </label>
-                                    <select class="multiple form-control" id="Species" name="Species[]" multiple="multiple" style="width:100%;">
-                                        <?php
-                                             if (isset($get["Species"])) {
-                                                $SpeciesInter = array_intersect($FSpecies,$get["Species"]);
-                                            }
-                                            foreach ($FSpecies as $key=>$specie) {
-                                                if (isset($SpeciesInter[$key]) && $SpeciesInter[$key] == $FSpecies[$key]) {
-                                                    echo '<option selected="selected">'.$specie.'</option>';
-                                                } else {
-                                                    echo '<option>'.$specie.'</option>';
-                                                }
-                                            }?>
-                                    </select>
-                                    <br>
-                                </div>
+                                        }
+                                        echo '</select>';
+                                        echo "\n";
+                                    }
+                                    echo '</div>';
+                                    echo "\n";
+                                }?>
                             </div>
                             <input class="m-2 mx-auto btn" name="csv" type="submit" value="Export to CSV">
                         </div>

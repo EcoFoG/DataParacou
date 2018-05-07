@@ -79,14 +79,25 @@ $config['table_template'] = array (
 );
 
 $config['filters'] = array(
-    "Plot",
-    "SubPlot",
-    "CodeAlive",
-    "CensusYear",
-    "VernName",
-    "Family",
-    "Species",
-    "Genus"
+    "Tree" => array(
+        "CodeAlive" => "Status"
+    ),
+    "Division" => array(
+        "Forest" => "Forest",
+        "Plot" => "Plot",
+        "SubPlot" => "Subplot",
+        "CensusYear" => "Census year"
+    ),
+    "Taxon" => array(
+        "VernName" => "Vernacular name",
+        "Family" => "Family",
+        "Genus" => "Genus",
+        "Species" => "Species"
+    ),
+    "Bota" => array(
+        "BotaSource" => "Botanical source",
+        "BotaCertainty" => "Safety index"
+    )
 );
 
 $config['defaultCircBoundaries'] = array(

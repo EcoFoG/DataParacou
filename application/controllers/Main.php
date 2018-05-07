@@ -63,19 +63,20 @@ class Main extends CI_Controller {
         $columns = $this->config->item("columns");
         $this->table->set_template($tmpl); // Apply template to the generated table
     }
-    private function getFilters(&$data, $filters, $paracouDB){
-        foreach ($filters as $value) { // Pour chaque filtre dans application/config/datatable.php
-            $data['F'.$value] = $this->cache->get('F'.$value); // Cherche dans le cache si les niveaux de filtres ne sont pas déjà enregistrés
-            if (!($data['F'.$value])) { // Si ils n'existent pas
-                $temp = $paracouDB->query("select \"$value\" from taparacou group by \"$value\" order by \"$value\"")->result_array(); // Prend les niveaux dans la base de données
-                foreach($temp as $key2=>$value2) {
-                    $temp[$key2] = $temp[$key2][$value];
+    private function getFilters($filters, $paracouDB) {
+        $reducedFilters = call_user_func_array('array_merge', $filters);
+        foreach ($reducedFilters as $key=>$value) { // Pour chaque filtre dans application/config/datatable.php
+            $dataFilters[$key] = $this->cache->get('F'.$key); // Cherche dans le cache si les niveaux de filtres ne sont pas déjà enregistrés
+            if (!(isset($dataFilters[$key]))) { // Si ils n'existent pas
+                $temp = $paracouDB->query("select \"$key\" from taparacou group by \"$key\" order by \"$key\"")->result_array(); // Prend les niveaux dans la base de données
+                foreach ($temp as $key2=>$value2) {
+                    $temp[$key2] = $temp[$key2][$key];
                 }
-                $data['F'.$value] = $temp; // Enregistre dans un tableau avec la clé F*filtre* (FCensusYear, FGenus ...)
-                $this->cache->save('F'.$value, $data['F'.$value], 0); // Enregistre dans le cache
+                $dataFilters[$key] = $temp; // Enregistre dans un tableau avec la clé F*filtre* (FCensusYear, FGenus ...)
+                $this->cache->save('F'.$key, $dataFilters[$key], 0); // Enregistre dans le cache
             }
         }
-        $data['filters'] = $filters;
+        return $dataFilters;
     }
 
     private function getCircBoundaries(&$data, $paracouDB){
@@ -91,6 +92,8 @@ class Main extends CI_Controller {
           $data['circDBMax'] = $circDBMax;
           $data['circDBMin'] = $circDBMin;
       }
+
+      
 
     }
     /* Crée les liens de pagination à partir du nombre de lignes et du nombre de ligne à afficher */
@@ -118,10 +121,12 @@ class Main extends CI_Controller {
         $this->configTable($data, $filters, $columns);
 
         #### Get levels of filters in the databases ####
-        $this->getFilters($data, $filters, $paracouDB);
-
+        $data['dataFilters'] = $this->getFilters($filters, $paracouDB);
+        $data['filters'] = $filters;
+        $data['circMax'] = !(empty($this->input->get('circMax'))) ? $this->input->get('circMax') : $defaultCircBoundaries['circMax']; // Opérateur ternaire : http://php.net/manual/fr/language.operators.comparison.php#language.operators.comparison.ternary
+        $data['circMin'] = !(empty($this->input->get('circMin'))) ? $this->input->get('circMin') : $defaultCircBoundaries['circMin']; // Si circMin passé dans l'url, l'enregistrer dans la variable $circMin sinon utiliser la valeur de $defaultCircBoundaries (référence fonction index application/controller/main.php)
         #### Get Circ boundaries in the database ####
-        $this->getCircBoundaries($data,$paracouDB);
+        $this->getCircBoundaries($data, $paracouDB);
 
         #### Views ####
         $this->load->view('header', $this->header);
@@ -134,10 +139,11 @@ class Main extends CI_Controller {
 
         $this->checkLogin();
 
-        $get = $this->input->get(NULL, FALSE);
+        $get = $this->input->get(null, false);
 
         $filters = $columns = $data = array();
         $this->configTable($data, $filters, $columns);
+        $reducedFilters = call_user_func_array('array_merge', $filters);
 
         #### Set default circMax and circMin ####
         $circMax = isset($get['circMax']) ? $get['circMax'] : $data['defaultCircBoundaries']['circMax'];
@@ -148,14 +154,14 @@ class Main extends CI_Controller {
 
         #### Génère le CSV si l'input "CSV" existe ####
         if(isset($get['csv'])){
-            $csv = $this->data_model->getCsv($filters, $get, $columns, $circMin, $circMax);
+            $csv = $this->data_model->getCsv($reducedFilters, $get, $columns, $circMin, $circMax);
             $time = time();
             $name = "Paracou".mdate("%Y%m%d",$time).".csv"; // Name of the CSV
             force_download($name, $csv);
         #### Sinon génère la table ####
         } else {
-            $data_table["table"] = $this->data_model->getTable($filters, $get, $columns, $circMin, $circMax, $offset, $n_limit);
-            $num_rows = $this->data_model->getNumRows($columns, $filters, $get, $circMin, $circMax);
+            $data_table["table"] = $this->data_model->getTable($reducedFilters, $get, $columns, $circMin, $circMax, $offset, $n_limit);
+            $num_rows = $this->data_model->getNumRows($columns, $reducedFilters, $get, $circMin, $circMax);
             $this->paginate($num_rows, $n_limit);
             $data_table["pagination_links"] = $this->pagination->create_links();
             echo json_encode($data_table);
@@ -177,31 +183,31 @@ class Main extends CI_Controller {
 
 
         if (isset($get['VernNamesSelected'])) {
-            foreach($get['VernNamesSelected'] as $value){
+            foreach ($get['VernNamesSelected'] as $value) {
                     $VernNamesSelected[$value] = $cache['VernNamesSelected'][$value];
             }
-            $temp['VernNamesSelected']['Family'] = call_user_func_array('array_merge',array_column($VernNamesSelected,'Family'));
-            $temp['VernNamesSelected']['Genus'] = call_user_func_array('array_merge',array_column($VernNamesSelected,'Genus'));
-            $temp['VernNamesSelected']['Species'] = call_user_func_array('array_merge',array_column($VernNamesSelected,'Species'));
+            $temp['VernNamesSelected']['Family'] = call_user_func_array('array_merge', array_column($VernNamesSelected, 'Family'));
+            $temp['VernNamesSelected']['Genus'] = call_user_func_array('array_merge', array_column($VernNamesSelected, 'Genus'));
+            $temp['VernNamesSelected']['Species'] = call_user_func_array('array_merge', array_column($VernNamesSelected, 'Species'));
         }
 
         if (isset($get['FamiliesSelected'])) {
-            foreach($get['FamiliesSelected'] as $value){
+            foreach ($get['FamiliesSelected'] as $value) {
                     $FamiliesSelected[$value] = $cache['FamiliesSelected'][$value];
             }
-            $temp['FamiliesSelected']['Genus'] = call_user_func_array('array_merge',array_column($FamiliesSelected,'Genus'));
-            $temp['FamiliesSelected']['Species'] = call_user_func_array('array_merge',array_column($FamiliesSelected,'Species'));
+            $temp['FamiliesSelected']['Genus'] = call_user_func_array('array_merge', array_column($FamiliesSelected, 'Genus'));
+            $temp['FamiliesSelected']['Species'] = call_user_func_array('array_merge', array_column($FamiliesSelected, 'Species'));
         }
 
         if (isset($get['GenusSelected'])) {
-            foreach($get['GenusSelected'] as $value){
+            foreach ($get['GenusSelected'] as $value) {
                     $GenusSelected[$value] = $cache['GenusSelected'][$value];
             }
-            $temp['GenusSelected']['Family'] = call_user_func_array('array_merge',array_column($GenusSelected,'Family'));
-            $temp['GenusSelected']['Species'] = call_user_func_array('array_merge',array_column($GenusSelected,'Species'));
+            $temp['GenusSelected']['Family'] = call_user_func_array('array_merge', array_column($GenusSelected, 'Family'));
+            $temp['GenusSelected']['Species'] = call_user_func_array('array_merge', array_column($GenusSelected, 'Species'));
         }
         if (isset($get['SpeciesSelected'])) {
-            foreach($get['SpeciesSelected'] as $value){
+            foreach ($get['SpeciesSelected'] as $value) {
                     $SpeciesSelected[$value] = $cache['SpeciesSelected'][$value];
             }
             $temp['SpeciesSelected']['Family'] = call_user_func_array('array_merge',array_column($SpeciesSelected,'Family'));
@@ -209,7 +215,7 @@ class Main extends CI_Controller {
         }
 
         if (isset($get['PlotsSelected'])) {
-            foreach($get['PlotsSelected'] as $key=>$value){
+            foreach ($get['PlotsSelected'] as $key=>$value) {
                      $tempSubPlot[$value] = $cache['SubPlot'][$value];
                      $tempCensusYear[$value] = $cache['CensusYear'][$value];
             }
@@ -218,7 +224,7 @@ class Main extends CI_Controller {
         }
 
         if (isset($get['CensusYearsSelected'])) {
-            foreach($get['CensusYearsSelected'] as $key=>$value){
+            foreach ($get['CensusYearsSelected'] as $key=>$value) {
                      $tempPlot[$value] = $cache['Plot'][$value];
             }
             $output['Plot'] = array_unique(call_user_func_array('array_merge',$tempPlot));

@@ -28,11 +28,11 @@
     <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
     <?php
-            $arr = $this->session->flashdata();
-            if(!empty($arr['flash_message'])){
-                $html = '<div class="bg-warning container flash-message">';
-                $html .= $arr['flash_message'];
-                $html .= '</div>';
-                echo $html;
-            }
-        ?>
+    $arr = $this->session->flashdata();
+    if (!empty($arr['flash_message'])) {
+        $html = '<div class="bg-warning container flash-message">';
+        $html .= $arr['flash_message'];
+        $html .= '</div>';
+        echo $html;
+    }
+    ?>
