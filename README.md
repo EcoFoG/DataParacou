@@ -51,7 +51,7 @@ Les modifications simples peuvent s’effectuer à l’aide des fichiers de conf
 #### Modifier le nom du site
 Le nom utilisé comme titre de la page et sur le menu de navigation est contenu dans la variable brandName définie dans datatable.php
 ```php
-$config['brandName'] = "Data Paracou";
+$config['brandName'] = "Paracou Data";
 ```
 
 #### Colonnes à extraire

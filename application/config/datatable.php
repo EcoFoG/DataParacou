@@ -1,5 +1,5 @@
 <?php
-$config['brandName'] = "Data Paracou";
+$config['brandName'] = "Paracou Data";
 // Colonnes à aller chercher dans la base de données
 $config['columns'] = array(
     'Forest',
