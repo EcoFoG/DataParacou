@@ -37,7 +37,7 @@ class Main extends CI_Controller {
 
     }
     // Redirections
-    protected function checkLogin(){
+    protected function _checkLogin(){
         if($this->input->post("admin")){ // Si lien "Admin" pressé redirige vers le panel admin
             redirect(base_url().'admin');
         }
@@ -52,7 +52,7 @@ class Main extends CI_Controller {
     }
 
     // Put config files in variables
-    private function configTable(&$data, &$filters, &$columns){
+    private function _configTable(&$data, &$filters, &$columns){
         /* Configuration of the data table in application/config/datatable.php */
         $tmpl = $this->config->item("table_template");
         $data['headers'] = $this->config->item("headers");
@@ -63,7 +63,7 @@ class Main extends CI_Controller {
         $columns = $this->config->item("columns");
         $this->table->set_template($tmpl); // Apply template to the generated table
     }
-    private function getFilters($filters, $paracouDB) {
+    private function _getFilters($filters, $paracouDB) {
         $reducedFilters = call_user_func_array('array_merge', $filters);
         foreach ($reducedFilters as $key=>$value) { // Pour chaque filtre dans application/config/datatable.php
             $dataFilters[$key] = $this->cache->get('F'.$key); // Cherche dans le cache si les niveaux de filtres ne sont pas déjà enregistrés
@@ -79,11 +79,11 @@ class Main extends CI_Controller {
         return $dataFilters;
     }
 
-    private function getCircBoundaries(&$data, $paracouDB){
+    private function _getCircBoundaries(&$data, $paracouDB){
       $circDBMin = $this->cache->get('circDBMin');
       $circDBMax = $this->cache->get('circDBMax');
-      if (!isset($circDBMin) || !isset($circDBMax)) {
-          $circBoundaries = $this->data_model->getCircBoundaries();
+      if (empty($circDBMin) || empty($circDBMax)) {
+          $circBoundaries = $this->data_model->_getCircBoundaries();
           $data['circDBMax'] = $circBoundaries['circDBMax'];
           $data['circDBMin'] = $circBoundaries['circDBMin'];
           $this->cache->save('circDBMax', $circBoundaries['circDBMax'], 86400);
@@ -97,7 +97,7 @@ class Main extends CI_Controller {
 
     }
     /* Crée les liens de pagination à partir du nombre de lignes et du nombre de ligne à afficher */
-    private function paginate($total_rows, $n_limit){
+    private function _paginate($total_rows, $n_limit){
         $this->config->load("pagination");
         $conf_pagination = $this->config->item("pagination");
         $conf_pagination['base_url'] = base_url()."main/" ;
@@ -109,7 +109,7 @@ class Main extends CI_Controller {
     public function index(){
         $filters = $columns = $data = array();
 
-        $data['role'] = $this->checkLogin();
+        $data['role'] = $this->_checkLogin();
 
         #### get GET method variables ####
         $get = $this->input->get(NULL, FALSE);
@@ -118,17 +118,17 @@ class Main extends CI_Controller {
 
         #### Configuration de la base de données dans application/config/database.php ####
         $paracouDB = $this->load->database('paracou', TRUE);
-        $this->configTable($data, $filters, $columns);
+        $this->_configTable($data, $filters, $columns);
 
         #### Get levels of filters in the databases ####
-        $data['dataFilters'] = $this->getFilters($filters, $paracouDB);
+        $data['dataFilters'] = $this->_getFilters($filters, $paracouDB);
         $data['reducedFilters'] = call_user_func_array('array_merge', $filters);
         $data['filters'] = $filters;
         $data['circMax'] = !(empty($this->input->get('circMax'))) ? $this->input->get('circMax') : $data['defaultCircBoundaries']['circMax']; // Opérateur ternaire : http://php.net/manual/fr/language.operators.comparison.php#language.operators.comparison.ternary
         $data['circMin'] = !(empty($this->input->get('circMin'))) ? $this->input->get('circMin') : $data['defaultCircBoundaries']['circMin']; // Si circMin passé dans l'url, l'enregistrer dans la variable $circMin sinon utiliser la valeur de $defaultCircBoundaries (référence fonction index application/controller/main.php)
         #### Get Circ boundaries in the database ####
-        $this->getCircBoundaries($data, $paracouDB);
-
+        $this->_getCircBoundaries($data,$paracouDB);
+        
         #### Views ####
         $this->load->view('header', $this->header);
         $this->load->view('index', $data);
@@ -138,12 +138,12 @@ class Main extends CI_Controller {
     #### Génère un JSON pour le javascript de application/views/index.php ####
     public function api_table(){
 
-        $this->checkLogin();
+        $this->_checkLogin();
 
         $get = $this->input->get(null, false);
 
         $filters = $columns = $data = array();
-        $this->configTable($data, $filters, $columns);
+        $this->_configTable($data, $filters, $columns);
         $reducedFilters = call_user_func_array('array_merge', $filters);
 
         #### Set default circMax and circMin ####
@@ -163,7 +163,7 @@ class Main extends CI_Controller {
         } else {
             $data_table["table"] = $this->data_model->getTable($reducedFilters, $get, $columns, $circMin, $circMax, $offset, $n_limit);
             $num_rows = $this->data_model->getNumRows($columns, $reducedFilters, $get, $circMin, $circMax);
-            $this->paginate($num_rows, $n_limit);
+            $this->_paginate($num_rows, $n_limit);
             $data_table["pagination_links"] = $this->pagination->create_links();
             echo json_encode($data_table);
         }
@@ -171,7 +171,7 @@ class Main extends CI_Controller {
 
     #### Génère un JSON pour le javascript de application/views/index.php ####
     public function api_filters(){
-        $this->checkLogin();
+        $this->_checkLogin();
 
         $get = $this->input->get();
         $cache['VernNamesSelected'] = $this->cache->get('FamilyGenusSpeciesByVernName');
@@ -387,7 +387,7 @@ class Main extends CI_Controller {
             $post = $this->input->post();
             $clean = $this->security->xss_clean($post);
 
-            $userInfo = $this->user_model->checkLogin($clean);
+            $userInfo = $this->user_model->_checkLogin($clean);
 
             if(!$userInfo){
                 redirect(base_url().'main/login');

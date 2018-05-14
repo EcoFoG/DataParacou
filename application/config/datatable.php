@@ -98,5 +98,5 @@ $config['filters'] = array(
 
 $config['defaultCircBoundaries'] = array(
     'circMin' => 10,
-    'circMax' => 150
+    'circMax' => 400
 );
