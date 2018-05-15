@@ -150,8 +150,8 @@ class Main extends CI_Controller {
         $circMax = isset($get['circMax']) ? $get['circMax'] : $data['defaultCircBoundaries']['circMax'];
         $circMin = isset($get['circMin']) ? $get['circMin'] : $data['defaultCircBoundaries']['circMin'];
 
-        $offset = isset($get['page']) ? $get['page'] : 1;
         $n_limit = isset($get['limit']) ? $get['limit'] : 50;
+        $offset = isset($get['page']) && $get['page']>1 ? ($get['page']-1)*$n_limit : 0;
 
         #### Génère le CSV si l'input "CSV" existe ####
         if(isset($get['csv'])){
