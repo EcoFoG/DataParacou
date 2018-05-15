@@ -387,7 +387,7 @@ class Main extends CI_Controller {
             $post = $this->input->post();
             $clean = $this->security->xss_clean($post);
 
-            $userInfo = $this->user_model->_checkLogin($clean);
+            $userInfo = $this->user_model->checkLogin($clean);
 
             if(!$userInfo){
                 redirect(base_url().'main/login');

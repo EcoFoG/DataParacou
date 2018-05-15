@@ -1,5 +1,5 @@
 <script type="text/javascript">
-    $(document).ready(function() {
+$(document).ready(function() {
     $('#Circ').prependTo("#Tree"); // Circ ne fait pas partie du tableau filters alors il faut le placer manuellement dans la catégorie Tree
       $('.multiple').on('select2:close', function (e){
                   var VernNameObj = $("#VernName").select2('data');
