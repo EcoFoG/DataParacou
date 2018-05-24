@@ -16,7 +16,6 @@ class Admin extends CI_Controller {
             $this->load->helper('url');
             $this->load->helper('inflector');
             $this->load->library('email');
-            $this->load->library('PeEmail');
             $this->load->library('session');
             $this->load->library('table');
             $this->load->library('pagination');
@@ -95,28 +94,23 @@ class Admin extends CI_Controller {
                     $url = base_url() . 'main/complete/token/' . $qstring;
                     $link = '<a href="' . $url . '">' . $url . '</a>';
 
-                    $panel1 = '<p>En attendant que le serveur mail soit mis en place, il faut envoyer manuellement ce message par e-mail : </p> <div class="card">';
                     $message = '';
                     $message .= "<strong>You have been invited to Paracou-Ex</strong><br>";
                     $message .= '<strong>Please click:</strong> ' . $link;
-                    $panel3 = "<a href='".base_url()."admin/list_users/'>Retour à la liste</a>";
 
-                    $catch = $this->peemail->sendMail($dest,"Invitation Paracou-Ex",$message);
-                    if ($catch) {
-                        echo "E-mail sent at $dest";
-                    } else {
-                        echo $catch;
-                    }
+                    $this->load->config('email');
+                    $email_config = $this->config->item('email');
+                    $this->email->initialize($email_config);
+                    $this->email->from("noreply@paracoudata.cirad.fr", 'Paracou Data');
+                    $this->email->to($dest);
 
-                    $panel2 = '</div>';
+                    $this->email->subject('Invitation Paracou Data');
+                    $this->email->message($message);
+                    
+                    $r = $this->email->send();
 
-                    echo $panel1;
-                    echo $message; //send this in email
-                    echo $panel2;
-                    echo $panel3;
-                    exit;
-
-
+                    $this->email->clear();
+                    echo '<a href="'.base_url().'admin/list_users" >Back to user list</a>';
                 }
             }
         }
@@ -215,22 +209,40 @@ class Admin extends CI_Controller {
         $this->load->view('admin/footer');
     }
 
+    private function _sendApproveMail($requestInfo, $message){
+        $this->load->config('email');
+        $email_config = $this->config->item('email');
+        $this->email->initialize($email_config);
+        $this->email->from("noreply@paracoudata.cirad.fr",'Paracou Data');
+        $this->email->to($requestInfo->email);
+
+        $this->email->subject('Request approval');
+        $this->email->message($message);
+        
+        $r = $this->email->send();
+        echo $this->email->print_debugger();
+        if(!$r){
+            log_message('error', $this->email->print_debugger());
+        }
+        $this->email->clear();
+    }
+
     public function accept_request($id){
         $this->checkRights();
         $requestinfo = $this->request_model->getRequestInfo($id);
         $user_duplicated = $this->user_model->isDuplicate($requestinfo->email);
         if (($requestinfo) && !isset($requestinfo->accepted)) {
-            if($user_duplicated){
-                $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
-                $clean["id"] = $id;
-                $this->request_model->updateRequestInfo($clean);
-                redirect(base_url()."admin/edit_user/user-$user_duplicated->id/request-$id");
-            }
             $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
             $clean["id"] = $id;
             $this->request_model->updateRequestInfo($clean);
-            $this->session->set_flashdata('accept',TRUE);
-            redirect(base_url()."admin/add_user/$id");
+            $message = "$requestinfo->firstname $requestinfo->lastname,<br> Your request has been accepted.<br> You will receive another mail with a invitation link <br> $requestinfo->specific_conditions";
+            $this->_sendApproveMail($requestinfo, $message);
+            if($user_duplicated){
+                redirect(base_url()."admin/edit_user/user-$user_duplicated->id/request-$id");
+            } else {
+                $this->session->set_flashdata('accept',TRUE);
+                redirect(base_url()."admin/add_user/$id");
+            }
         } else if (isset($requestinfo->accepted)) {
             $this->session->set_flashdata('error_message',"The request n°$id is already accepted");
             redirect(base_url().'admin/list_requests/');
@@ -245,6 +257,8 @@ class Admin extends CI_Controller {
         $requestinfo = $this->request_model->getRequestInfo($id);
         if (($requestinfo) && !isset($requestinfo->accepted)) {
             $this->request_model->declineRequest($id);
+            $message = "$requestinfo->firstname $requestinfo->lastname,<br> Sorry your request has been declined.";
+            $this->_sendApproveMail($requestinfo,$message);
             redirect(base_url().'admin/list_requests/');
         } else if (isset($requestinfo->accepted)) {
             $this->session->set_flashdata('error_message',"The request n°$id is already accepted");

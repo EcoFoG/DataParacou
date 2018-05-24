@@ -83,7 +83,7 @@ class Main extends CI_Controller {
       $circDBMin = $this->cache->get('circDBMin');
       $circDBMax = $this->cache->get('circDBMax');
       if (empty($circDBMin) || empty($circDBMax)) {
-          $circBoundaries = $this->data_model->_getCircBoundaries();
+          $circBoundaries = $this->data_model->getCircBoundaries();
           $data['circDBMax'] = $circBoundaries['circDBMax'];
           $data['circDBMin'] = $circBoundaries['circDBMin'];
           $this->cache->save('circDBMax', $circBoundaries['circDBMax'], 86400);
@@ -446,14 +446,59 @@ class Main extends CI_Controller {
                 redirect(base_url().'main/login');
             } else {
                 $requestInfo = $this->request_model->getRequestInfo($requestId);
+                $this->_requestMail($requestInfo);
                 $this->load->view('header', $this->header);
-                print_r($requestInfo);
-                echo '<br>Your request had been taken, you will be contacted by e-mail when accepted <br>'
+                echo '<br>Your request has been taken, you will receive<br>'
                 . '<a href="'. base_url().'/main/">Back to login</a>';
                 $this->load->view('footer');
             }
         }
 
+    }
+
+    private function _requestMail($requestInfo){
+        $message = 'Hello,<br>';
+        $message .= 'Your request has been taken you will be recontacted soon<br>';
+
+        $this->load->library('email');
+
+        $this->load->config('email');
+        $email_config = $this->config->item('email');
+        $this->email->initialize($email_config);
+        $this->email->from("noreply@paracoudata.cirad.fr", 'Paracou Data');
+        $this->email->to($requestInfo->email);
+
+        $this->email->subject('Request taken');
+        $this->email->message($message);
+        
+        $r = $this->email->send();
+
+        $this->email->clear();
+
+        if(!$r){
+            log_message('error', $this->email->print_debugger());
+        }
+
+        $show_link = base_url().'admin/show_request/'.$requestInfo->id;
+
+        $message_admin = "$requestInfo->firstname $requestInfo->lastname from $requestInfo->affiliation is asking for Paracou Data access for his/her research : $requestInfo->title_research<br>$show_link";
+
+        $admin_list = $this->user_model->getAdminList();
+
+        foreach ($admin_list as $admin) {
+            $this->email->initialize($email_config);
+            $this->email->from("noreply@paracoudata.cirad.fr", 'Paracou Data');
+            $this->email->to($admin->email);
+            $this->email->subject('Request received');
+            $this->email->message($message_admin);
+
+            $r_admin = $this->email->send();
+            $this->email->clear();
+            
+            if(!$r_admin){
+                log_message('error', $this->email->print_debugger());
+            }
+        }
     }
 
 
@@ -498,7 +543,22 @@ class Main extends CI_Controller {
             $message .= '<strong>A password reset has been requested for this email account</strong><br>';
             $message .= '<strong>Please click:</strong> ' . $link;
 
-            echo $message; //send this through mail
+            $this->load->library('email');
+
+            $this->load->config('email');
+            $email_config = $this->config->item('email');
+            $this->email->initialize($email_config);
+            $this->email->from("noreply@paracoudata.cirad.fr", 'Paracou data');
+            $this->email->to($email);
+
+            $this->email->subject('Email Test');
+            $this->email->message($message);
+            
+            $r = $this->email->send();
+            if(!$r){
+                log_message('error', $this->email->print_debugger());
+            }
+            
             exit;
 
         }

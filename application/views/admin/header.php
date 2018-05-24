@@ -11,8 +11,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
-        <link rel="stylesheet" type="text/css" href="/public/css/bootstrap.min.css" crossorigin="anonymous">
-        <link rel="stylesheet" type="text/css" href="/public/css/dataTables.bootstrap4.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="/public/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="/public/css/dataTables.bootstrap4.min.css">
         <link rel="stylesheet" type="text/css" href="/public/css/daterangepicker.css" />
         <link rel="stylesheet" type="text/css" href="/public/fontawesome/css/fontawesome-all.css" />
         <link rel="stylesheet" type="text/css" href="/public/css/main.css">

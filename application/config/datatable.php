@@ -83,7 +83,6 @@ $config['filters'] = array(
         "CodeAlive" => "Status"
     ),
     "Division" => array(
-        "Forest" => "Forest",
         "Plot" => "Plot",
         "SubPlot" => "Subplot",
         "CensusYear" => "Census year"

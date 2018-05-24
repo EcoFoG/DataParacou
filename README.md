@@ -2,10 +2,12 @@
 title: "Documentation_technique"
 layout: post
 date: "2018-04-27 13:30"
-output: 
-  html_document: 
+output:
+  word_document:
     toc: yes
-    toc_float: true
+  html_document:
+    toc: yes
+    toc_float: yes
 ---
 
 # Contexte
@@ -17,26 +19,40 @@ L'application permet aux chercheurs de trier les données de Paracou à l'aide d
 DataParacou est développé en PHP sous le framework CodeIgniter
 
 # Fonctionnalités
+
 ## Données
+
 ### Filtrage des données
-![Capture d'écran filtres](_posts/2018/img/capt_ecran_filtres.png)
+
+![Capture d'écran filtres](documentation/img/capt_ecran_filtres.png)
 L'application contient un panneau de filtres on peut choisir plusieurs éléments dans chacun des filtres. En cliquant sur apply, la table des données s'actualise et affiche seulement les données qui correspondent aux caractéristiques choisies dans les filtres
+
 ### Auto-complétion des filtres 
-![Capture d'écran autocomplétion](_posts/2018/img/capt_ecran_autocompletion.png)
+
+![Capture d'écran autocomplétion](documentation/img/capt_ecran_autocompletion.png)
 Lorsque l'on choisit un ou plusieurs éléments d'un filtre, les prochains choix seront limités aux éléments concordants de l'élément choisi précédemment(par exemple quand on choisit une parcelle, seules les années où la parcelle a été mesurée apparaitront dans le filtre "années")
+
 ### Affichage des données
-![Capture d'écran affichage](_posts/2018/img/capt_ecran_affichage.png)
+
+![Capture d'écran affichage](documentation/img/capt_ecran_affichage.png)
 Les données sont affichées sous forme de tableau, pour la prévisualisation avant l'exportation,
 on peut changer de page pour voir l'intégralité des données.
+
 ### Exportation en CSV
+
 En cliquant sur "Export to CSV", on peut exporter les données en format CSV, le fichier sera nommé "ParacouDDMMYYYY.csv" correspondant à la date de l'exportation.
+
 ### Sauvegarder l'état des filtres
+
 En cliquant sur "Save state" on obtient un lien qui garde en mémoire l'état des filtres dans le cas où on a besoin de récupérer les mêmes données
+
 ## Gestion des utilisateurs
+
 L'application permet la gestion des utilisateurs qui accèdent aux données.
 par le biais de requêtes d'accès et d'expiration des comptes
 
 # Modifications simples
+
 Les modifications simples peuvent s’effectuer à l’aide des fichiers de configurations situés dans « application/config » de la racine du projet
 
 | Nom du fichier | Module correspondant                |
@@ -46,15 +62,18 @@ Les modifications simples peuvent s’effectuer à l’aide des fichiers de conf
 | database.php   | Identifiants des bases de données   |
 | pagination.php | Configuration de la pagination      |
 | routes.php     | Redirections URL vers controleur    |
+
 ## Modifier la table (datatable.php)
 
 #### Modifier le nom du site
+
 Le nom utilisé comme titre de la page et sur le menu de navigation est contenu dans la variable brandName définie dans datatable.php
 ```php
 $config['brandName'] = "Paracou Data";
 ```
 
 #### Colonnes à extraire
+
 La modification des colonnes à extraire s'effectue dans ce tableau :
 ```php
 // Colonnes à aller chercher dans la base de donnée
@@ -125,7 +144,9 @@ La modification des annotations au survol de la souris (tooltips) s'effectue ég
 Le tableau colonne doit être ordonné de la même façon que le tableau des header, sous peine d'avoir un nom de colonne qui ne correspondent pas à la donnée.
 
 #### Forme de la table
+
 *Pré-requis :*
+
 - HTML/CSS
 - [Bootstrap table classes](https://getbootstrap.com/docs/4.0/content/tables/)
 
@@ -182,6 +203,7 @@ $config['filters'] = array(
 ```
 
 #### Bornes par défaut de Circ
+
 Ce sont les bornes pré-sélectionnées de Circ pour les filtres
 ```php
 $config['defaultCircBoundaries'] = array(
@@ -263,6 +285,7 @@ $config["email"] = array(
 ## Modifier la forme de la pagination (pagination.php)
 
 *Pré-requis :*
+
 - HTML/CSS
 
 [Documentation Codeigniter pagination](https://www.codeigniter.com/userguide3/libraries/pagination.html)
@@ -342,13 +365,17 @@ Il faudra ensuite modifier les vues contenant les liens redirigeant vers cet URL
 Après avoir modifié un composant du site, il doit être impérativement testé avant la mise en ligne.
 Pour ça il faut installer un serveur de développement pour pouvoir executer l'application et ainsi tester si les changements n'ont créés aucun bugs.
 
-/!\ Utiliser un serveur web avec une version php < 7.x peut causer des bugs /!\
+/! Utiliser un serveur web avec une version php < 7.x peut causer des bugs /!
 
 - [EasyPHP Devserver](http://www.easyphp.org/) :
+
     - Simple d'utilisation, mais peu extensible [Tutoriel d'installation](https://www.chireux.fr/mp/info/BDD/Tutoriel%20EasyPHP.pdf)
 - [Xampp](https://www.apachefriends.org/fr/index.html) :
+
     - Simple à installer, et à utiliser, mais reste extensible (recommandé) [Tutoriel d'installation](https://www.1and1.fr/digitalguide/serveur/outils/tutoriel-xampp-creer-un-serveur-de-test-local/)
+    
 - [Wamp](http://www.wampserver.com/) :
+
     - Difficile à installer, se comporte comme un serveur web apache sous linux [Tutoriel d'installation](https://craym.eu/tutoriels/developpement/site_local_avec_wamp.html)
 
 Modifier le fichier application/config/database.php
@@ -380,10 +407,13 @@ Après avoir copié les fichiers du projet, vous pouvez accéder à l'applicatio
  > 127.0.0.1:<port choisi (80, 8080 ou 8000)>
 
 Identifiants du compte pré-enregistrés dans le dump importé :
+
 > Identifiant admin : admin@admin.com
 
 > Mot de passe admin : #u5Sd_d5!D
+
 ## Téléverser les changements sur le serveur
+
 Après avoir modifié et testé les fichiers en local, il faut téléverser les fichiers pour appliquer les changement
 
 Identifiants serveur Montpellier :
@@ -393,7 +423,7 @@ Identifiants serveur Kourou :
 [Filezilla](https://filezilla-project.org/)
 
 /var/www/
-![Capture d'écran filezilla](_posts/2018/img/capt_ecran_filezilla.png)
+![Capture d'écran filezilla](documentation/img/capt_ecran_filezilla.png)
 
 # Modifications avancées
 
@@ -438,10 +468,10 @@ Pour cela, sera détaillé le fonctionnement et la structure interne de l'applic
 [Architecture MVC](https://developer.mozilla.org/fr/Apps/Build/Architecture_d_une_application_web_moderne/MVC_architecture)
 
 Diagramme UML de l'application
-![Diagramme UML](_posts/2018/img/UML.png)
+![Diagramme UML](documentation/img/UML.png)
 
 Flow chart CodeIgniter
-![FlowChart](_posts/2018/img/appflowchart.gif)
+![FlowChart](documentation/img/appflowchart.gif)
 
 #### Modèles :
 - application/models/Data_model.php

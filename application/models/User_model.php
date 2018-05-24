@@ -47,6 +47,12 @@ class User_model extends CI_Model {
         return $q->result();
     }
 
+    public function getAdminList()
+    {
+        $q = $this->db->get_where('users', array('role' => 'admin'));
+        return $q->result();
+    }
+
     public function insertToken($user_id)
     {
         $token = substr(sha1(rand()), 0, 30);
