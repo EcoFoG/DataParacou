@@ -17,8 +17,8 @@ class Cron extends CI_Controller {
         $paracouDB = $this->load->database('paracou', TRUE);
 
         $this->config->load("datatable");
-        $filters =  $this->config->item("filters");
-        foreach ($filters as $value) {
+        $filters =  call_user_func_array('array_merge', $this->config->item("filters"));
+        foreach ($filters as $value=>$humanizedValue) {
             $data['F'.$value] = $this->cache->get('F'.$value);
             if (!($data['F'.$value])) {
                 $temp = $paracouDB->query("select \"$value\" from taparacou group by \"$value\" order by \"$value\"")->result_array();
