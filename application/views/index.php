@@ -197,7 +197,7 @@ $(document).ready(function() {
                 datatype: "json",
                 data: {<?php foreach ($reducedFilters as $key => $value) {
                     echo "$key : $key, ";
-                }?>page : page, offset : offset, apply : "apply"} // Passe les paramètres via la méthode get
+                }?>circMin : circMin, circMax : circMax, page : page, offset : offset, apply : "apply"} // Passe les paramètres via la méthode get
             }).done(function(data){ // Evènement données reçues
                 data = JSON.parse(data); // Transforme JSON -> Array javascript
                 $('#page-selection').html(data.pagination_links);
