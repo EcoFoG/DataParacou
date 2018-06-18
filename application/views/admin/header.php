@@ -11,19 +11,19 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
-        <link rel="stylesheet" type="text/css" href="/public/css/bootstrap.min.css">
-        <link rel="stylesheet" type="text/css" href="/public/css/dataTables.bootstrap4.min.css">
-        <link rel="stylesheet" type="text/css" href="/public/css/daterangepicker.css" />
-        <link rel="stylesheet" type="text/css" href="/public/fontawesome/css/fontawesome-all.css" />
-        <link rel="stylesheet" type="text/css" href="/public/css/main.css">
+        <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>public/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>public/css/dataTables.bootstrap4.min.css">
+        <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>public/css/daterangepicker.css" />
+        <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>public/fontawesome/css/fontawesome-all.css" />
+        <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>public/css/main.css">
 
-        <script type="text/javascript" src="/public/js/jquery.min.js"></script>
-        <script type="text/javascript" src="/public/js/popper.min.js"></script>
-        <script type="text/javascript" src="/public/js/jquery.dataTables.min.js"></script>
-        <script type="text/javascript" src="/public/js/dataTables.bootstrap4.min.js"></script>
-        <script type="text/javascript" src="/public/js/moment.min.js"></script>
-        <script type="text/javascript" src="/public/js/daterangepicker.js"></script>
-        <script type="text/javascript" src="/public/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="<?php echo base_url(); ?>public/js/jquery.min.js"></script>
+        <script type="text/javascript" src="<?php echo base_url(); ?>public/js/popper.min.js"></script>
+        <script type="text/javascript" src="<?php echo base_url(); ?>public/js/jquery.dataTables.min.js"></script>
+        <script type="text/javascript" src="<?php echo base_url(); ?>public/js/dataTables.bootstrap4.min.js"></script>
+        <script type="text/javascript" src="<?php echo base_url(); ?>public/js/moment.min.js"></script>
+        <script type="text/javascript" src="<?php echo base_url(); ?>public/js/daterangepicker.js"></script>
+        <script type="text/javascript" src="<?php echo base_url(); ?>public/js/bootstrap.min.js"></script>
         <script>
             $(function() {
                 $('a[data-confirm]').click(function(ev) {

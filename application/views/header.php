@@ -11,17 +11,17 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
-        <link rel="stylesheet" type="text/css" href="/public/css/bootstrap.min.css">
-        <link rel="stylesheet" type="text/css" href="/public/css/main.css">
-        <link rel="stylesheet" type="text/css" href="/public/css/select2.min.css">
-        <link rel="stylesheet" type="text/css" href="/public/css/daterangepicker.css" />
-        <link rel="stylesheet" type="text/css" href="/public/css/jquery-ui.css">
+        <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>public/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>public/css/main.css">
+        <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>public/css/select2.min.css">
+        <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>public/css/daterangepicker.css" />
+        <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>public/css/jquery-ui.css">
 
-        <script type="text/javascript" src="/public/js/jquery.min.js"></script>
-        <script type="text/javascript" src="/public/js/jquery-ui.js"></script>
-        <script type="text/javascript" src="/public/js/moment.min.js"></script>
-        <script type="text/javascript" src="/public/js/jquery.bootpag.min.js"></script>
-        <script type="text/javascript" src="/public/js/select2.js"></script>
+        <script type="text/javascript" src="<?php echo base_url(); ?>public/js/jquery.min.js"></script>
+        <script type="text/javascript" src="<?php echo base_url(); ?>public/js/jquery-ui.js"></script>
+        <script type="text/javascript" src="<?php echo base_url(); ?>public/js/moment.min.js"></script>
+        <script type="text/javascript" src="<?php echo base_url(); ?>public/js/jquery.bootpag.min.js"></script>
+        <script type="text/javascript" src="<?php echo base_url(); ?>public/js/select2.js"></script>
     </head>
     <body>
     <!--[if lt IE 8]>
