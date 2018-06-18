@@ -149,4 +149,12 @@ class Cron extends CI_Controller {
 
     }
 
+    public function test(){
+        $cache['SubPlot'] = $this->cache->get('SubPlotByPlot');
+        $cache['CensusYear'] = $this->cache->get('CensusYearByPlot');
+        $cache['Plot'] = $this->cache->get('PlotByCensusYear');
+        var_dump($cache);
+
+    }
+
 }

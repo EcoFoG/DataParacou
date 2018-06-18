@@ -235,7 +235,7 @@ class Admin extends CI_Controller {
             $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
             $clean["id"] = $id;
             $this->request_model->updateRequestInfo($clean);
-            $message = "$requestinfo->firstname $requestinfo->lastname,<br> Your request has been accepted.<br> You will receive another mail with a invitation link <br> $requestinfo->specific_conditions";
+            $message = "$requestinfo->firstname $requestinfo->lastname,<br> Your request has been accepted.<br> You will receive another mail with an invitation link <br> $requestinfo->specific_conditions";
             $this->_sendApproveMail($requestinfo, $message);
             if($user_duplicated){
                 redirect(base_url()."admin/edit_user/user-$user_duplicated->id/request-$id");

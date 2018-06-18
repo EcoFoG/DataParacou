@@ -45,7 +45,7 @@ class Main extends CI_Controller {
             redirect(base_url().'main/logout/');
         }
         // Redirection vers login() si la session n'existe pas ou si le comtpe est expiré
-        if(empty($this->session->userdata['email']) || ((isset($this->session->userdata['expires'])) && (time() > strtotime(str_replace('/', '-', $this->session->userdata['expires']))))){
+        if(empty($this->session->userdata['email']) || ((!empty($this->session->userdata['expires'])) && (time() > strtotime(str_replace('/', '-', $this->session->userdata['expires']))))){
             redirect(base_url().'main/login/');
         }
         return $this->session->userdata('role');
@@ -67,7 +67,7 @@ class Main extends CI_Controller {
         $reducedFilters = call_user_func_array('array_merge', $filters);
         foreach ($reducedFilters as $key=>$value) { // Pour chaque filtre dans application/config/datatable.php
             $dataFilters[$key] = $this->cache->get('F'.$key); // Cherche dans le cache si les niveaux de filtres ne sont pas déjà enregistrés
-            if (!isset($dataFilters[$key]) || empty($dataFilters[$key])) { // Si ils n'existent pas
+            if (!!empty($dataFilters[$key]) || empty($dataFilters[$key])) { // Si ils n'existent pas
                 $temp = $paracouDB->query("select \"$key\" from taparacou group by \"$key\" order by \"$key\"")->result_array(); // Prend les niveaux dans la base de données
                 foreach ($temp as $key2=>$value2) {
                     $temp[$key2] = $temp[$key2][$key];
@@ -147,14 +147,14 @@ class Main extends CI_Controller {
         $reducedFilters = call_user_func_array('array_merge', $filters);
 
         #### Set default circMax and circMin ####
-        $circMax = isset($get['circMax']) ? $get['circMax'] : $data['defaultCircBoundaries']['circMax'];
-        $circMin = isset($get['circMin']) ? $get['circMin'] : $data['defaultCircBoundaries']['circMin'];
+        $circMax = !empty($get['circMax']) ? $get['circMax'] : $data['defaultCircBoundaries']['circMax'];
+        $circMin = !empty($get['circMin']) ? $get['circMin'] : $data['defaultCircBoundaries']['circMin'];
 
-        $n_limit = isset($get['limit']) ? $get['limit'] : 50;
-        $offset = isset($get['page']) && $get['page']>1 ? ($get['page']-1)*$n_limit : 0;
+        $n_limit = !empty($get['limit']) ? $get['limit'] : 50;
+        $offset = !empty($get['page']) && $get['page']>1 ? ($get['page']-1)*$n_limit : 0;
 
         #### Génère le CSV si l'input "CSV" existe ####
-        if(isset($get['csv'])){
+        if(!empty($get['csv'])){
             $csv = $this->data_model->getCsv($reducedFilters, $get, $columns, $circMin, $circMax);
             $time = time();
             $name = "Paracou".mdate("%Y%m%d",$time).".csv"; // Name of the CSV
@@ -183,7 +183,7 @@ class Main extends CI_Controller {
         $cache['Plot'] = $this->cache->get('PlotByCensusYear');
 
 
-        if (isset($get['VernNamesSelected'])) {
+        if (!empty($get['VernNamesSelected'])) {
             foreach ($get['VernNamesSelected'] as $value) {
                     $VernNamesSelected[$value] = $cache['VernNamesSelected'][$value];
             }
@@ -192,7 +192,7 @@ class Main extends CI_Controller {
             $temp['VernNamesSelected']['Species'] = call_user_func_array('array_merge', array_column($VernNamesSelected, 'Species'));
         }
 
-        if (isset($get['FamiliesSelected'])) {
+        if (!empty($get['FamiliesSelected'])) {
             foreach ($get['FamiliesSelected'] as $value) {
                     $FamiliesSelected[$value] = $cache['FamiliesSelected'][$value];
             }
@@ -200,14 +200,14 @@ class Main extends CI_Controller {
             $temp['FamiliesSelected']['Species'] = call_user_func_array('array_merge', array_column($FamiliesSelected, 'Species'));
         }
 
-        if (isset($get['GenusSelected'])) {
+        if (!empty($get['GenusSelected'])) {
             foreach ($get['GenusSelected'] as $value) {
                     $GenusSelected[$value] = $cache['GenusSelected'][$value];
             }
             $temp['GenusSelected']['Family'] = call_user_func_array('array_merge', array_column($GenusSelected, 'Family'));
             $temp['GenusSelected']['Species'] = call_user_func_array('array_merge', array_column($GenusSelected, 'Species'));
         }
-        if (isset($get['SpeciesSelected'])) {
+        if (!empty($get['SpeciesSelected'])) {
             foreach ($get['SpeciesSelected'] as $value) {
                     $SpeciesSelected[$value] = $cache['SpeciesSelected'][$value];
             }
@@ -215,7 +215,7 @@ class Main extends CI_Controller {
             $temp['SpeciesSelected']['Genus'] = call_user_func_array('array_merge',array_column($SpeciesSelected,'Genus'));
         }
 
-        if (isset($get['PlotsSelected'])) {
+        if (!empty($get['PlotsSelected'])) {
             foreach ($get['PlotsSelected'] as $key=>$value) {
                      $tempSubPlot[$value] = $cache['SubPlot'][$value];
                      $tempCensusYear[$value] = $cache['CensusYear'][$value];
@@ -224,7 +224,7 @@ class Main extends CI_Controller {
             $output['CensusYear'] = array_unique(call_user_func_array('array_merge',$tempCensusYear));
         }
 
-        if (isset($get['CensusYearsSelected'])) {
+        if (!empty($get['CensusYearsSelected'])) {
             foreach ($get['CensusYearsSelected'] as $key=>$value) {
                      $tempPlot[$value] = $cache['Plot'][$value];
             }
@@ -234,31 +234,31 @@ class Main extends CI_Controller {
 //            How to intersect array only if they exists
 //            https://stackoverflow.com/questions/49694616/how-to-intersect-array-only-if-they-exists/49696487#49696487
 
-        $output['Family'] = (isset($temp['VernNamesSelected']['Family']) && isset($temp['GenusSelected']['Family']) && isset($temp['SpeciesSelected']['Family']) ? array_intersect($temp['VernNamesSelected']['Family'],$temp['GenusSelected']['Family'],$temp['SpeciesSelected']['Family']) :
-            (isset($temp['VernNamesSelected']['Family']) && isset($temp['GenusSelected']['Family']) && !isset($temp['SpeciesSelected']['Family']) ? array_intersect($temp['VernNamesSelected']['Family'],$temp['GenusSelected']['Family']) :
-            (isset($temp['VernNamesSelected']['Family']) && !isset($temp['GenusSelected']['Family']) && isset($temp['SpeciesSelected']['Family']) ? array_intersect($temp['VernNamesSelected']['Family'],$temp['SpeciesSelected']['Family']) :
-            (!isset($temp['VernNamesSelected']['Family']) && isset($temp['GenusSelected']['Family']) && isset($temp['SpeciesSelected']['Family']) ? array_intersect($temp['GenusSelected']['Family'],$temp['SpeciesSelected']['Family']) :
-            (isset($temp['VernNamesSelected']['Family']) && !isset($temp['GenusSelected']['Family']) && !isset($temp['SpeciesSelected']['Family']) ? $temp['VernNamesSelected']['Family'] :
-            (!isset($temp['VernNamesSelected']['Family']) && isset($temp['GenusSelected']['Family']) && !isset($temp['SpeciesSelected']['Family']) ? $temp['GenusSelected']['Family'] :
-            (!isset($temp['VernNamesSelected']['Family']) && !isset($temp['GenusSelected']['Family']) && isset($temp['SpeciesSelected']['Family']) ? $temp['SpeciesSelected']['Family'] :
+        $output['Family'] = (!empty($temp['VernNamesSelected']['Family']) && !empty($temp['GenusSelected']['Family']) && !empty($temp['SpeciesSelected']['Family']) ? array_intersect($temp['VernNamesSelected']['Family'],$temp['GenusSelected']['Family'],$temp['SpeciesSelected']['Family']) :
+            (!empty($temp['VernNamesSelected']['Family']) && !empty($temp['GenusSelected']['Family']) && !!empty($temp['SpeciesSelected']['Family']) ? array_intersect($temp['VernNamesSelected']['Family'],$temp['GenusSelected']['Family']) :
+            (!empty($temp['VernNamesSelected']['Family']) && !!empty($temp['GenusSelected']['Family']) && !empty($temp['SpeciesSelected']['Family']) ? array_intersect($temp['VernNamesSelected']['Family'],$temp['SpeciesSelected']['Family']) :
+            (!!empty($temp['VernNamesSelected']['Family']) && !empty($temp['GenusSelected']['Family']) && !empty($temp['SpeciesSelected']['Family']) ? array_intersect($temp['GenusSelected']['Family'],$temp['SpeciesSelected']['Family']) :
+            (!empty($temp['VernNamesSelected']['Family']) && !!empty($temp['GenusSelected']['Family']) && !!empty($temp['SpeciesSelected']['Family']) ? $temp['VernNamesSelected']['Family'] :
+            (!!empty($temp['VernNamesSelected']['Family']) && !empty($temp['GenusSelected']['Family']) && !!empty($temp['SpeciesSelected']['Family']) ? $temp['GenusSelected']['Family'] :
+            (!!empty($temp['VernNamesSelected']['Family']) && !!empty($temp['GenusSelected']['Family']) && !empty($temp['SpeciesSelected']['Family']) ? $temp['SpeciesSelected']['Family'] :
             NULL)))))));
 
-        $output['Genus'] = (isset($temp['VernNamesSelected']['Genus']) && isset($temp['FamiliesSelected']['Genus']) && isset($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'],$temp['FamiliesSelected']['Genus'],$temp['SpeciesSelected']['Genus']) :
-            (isset($temp['VernNamesSelected']['Genus']) && isset($temp['FamiliesSelected']['Genus']) && !isset($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'],$temp['FamiliesSelected']['Genus']) :
-            (isset($temp['VernNamesSelected']['Genus']) && !isset($temp['FamiliesSelected']['Genus']) && isset($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'],$temp['SpeciesSelected']['Genus']) :
-            (!isset($temp['VernNamesSelected']['Genus']) && isset($temp['FamiliesSelected']['Genus']) && isset($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['FamiliesSelected']['Genus'],$temp['SpeciesSelected']['Genus']) :
-            (isset($temp['VernNamesSelected']['Genus']) && !isset($temp['FamiliesSelected']['Genus']) && !isset($temp['SpeciesSelected']['Genus']) ? $temp['VernNamesSelected']['Genus'] :
-            (!isset($temp['VernNamesSelected']['Genus']) && isset($temp['FamiliesSelected']['Genus']) && !isset($temp['SpeciesSelected']['Genus']) ? $temp['FamiliesSelected']['Genus'] :
-            (!isset($temp['VernNamesSelected']['Genus']) && !isset($temp['FamiliesSelected']['Genus']) && isset($temp['SpeciesSelected']['Genus']) ? $temp['SpeciesSelected']['Genus'] :
+        $output['Genus'] = (!empty($temp['VernNamesSelected']['Genus']) && !empty($temp['FamiliesSelected']['Genus']) && !empty($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'],$temp['FamiliesSelected']['Genus'],$temp['SpeciesSelected']['Genus']) :
+            (!empty($temp['VernNamesSelected']['Genus']) && !empty($temp['FamiliesSelected']['Genus']) && !!empty($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'],$temp['FamiliesSelected']['Genus']) :
+            (!empty($temp['VernNamesSelected']['Genus']) && !!empty($temp['FamiliesSelected']['Genus']) && !empty($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'],$temp['SpeciesSelected']['Genus']) :
+            (!!empty($temp['VernNamesSelected']['Genus']) && !empty($temp['FamiliesSelected']['Genus']) && !empty($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['FamiliesSelected']['Genus'],$temp['SpeciesSelected']['Genus']) :
+            (!empty($temp['VernNamesSelected']['Genus']) && !!empty($temp['FamiliesSelected']['Genus']) && !!empty($temp['SpeciesSelected']['Genus']) ? $temp['VernNamesSelected']['Genus'] :
+            (!!empty($temp['VernNamesSelected']['Genus']) && !empty($temp['FamiliesSelected']['Genus']) && !!empty($temp['SpeciesSelected']['Genus']) ? $temp['FamiliesSelected']['Genus'] :
+            (!!empty($temp['VernNamesSelected']['Genus']) && !!empty($temp['FamiliesSelected']['Genus']) && !empty($temp['SpeciesSelected']['Genus']) ? $temp['SpeciesSelected']['Genus'] :
             NULL)))))));
 
-        $output['Species'] = (isset($temp['VernNamesSelected']['Species']) && isset($temp['GenusSelected']['Species']) && isset($temp['FamiliesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'],$temp['GenusSelected']['Species'],$temp['FamiliesSelected']['Species']) :
-            (isset($temp['VernNamesSelected']['Species']) && isset($temp['GenusSelected']['Species']) && !isset($temp['FamiliesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'],$temp['GenusSelected']['Species']) :
-            (isset($temp['VernNamesSelected']['Species']) && !isset($temp['GenusSelected']['Species']) && isset($temp['FamiliesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'],$temp['FamiliesSelected']['Species']) :
-            (!isset($temp['VernNamesSelected']['Species']) && isset($temp['GenusSelected']['Species']) && isset($temp['FamiliesSelected']['Species']) ? array_intersect($temp['GenusSelected']['Species'],$temp['FamiliesSelected']['Species']) :
-            (isset($temp['VernNamesSelected']['Species']) && !isset($temp['GenusSelected']['Species']) && !isset($temp['FamiliesSelected']['Species']) ? $temp['VernNamesSelected']['Species'] :
-            (!isset($temp['VernNamesSelected']['Species']) && isset($temp['GenusSelected']['Species']) && !isset($temp['FamiliesSelected']['Species']) ? $temp['GenusSelected']['Species'] :
-            (!isset($temp['VernNamesSelected']['Species']) && !isset($temp['GenusSelected']['Species']) && isset($temp['FamiliesSelected']['Species']) ? $temp['FamiliesSelected']['Species'] :
+        $output['Species'] = (!empty($temp['VernNamesSelected']['Species']) && !empty($temp['GenusSelected']['Species']) && !empty($temp['FamiliesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'],$temp['GenusSelected']['Species'],$temp['FamiliesSelected']['Species']) :
+            (!empty($temp['VernNamesSelected']['Species']) && !empty($temp['GenusSelected']['Species']) && !!empty($temp['FamiliesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'],$temp['GenusSelected']['Species']) :
+            (!empty($temp['VernNamesSelected']['Species']) && !!empty($temp['GenusSelected']['Species']) && !empty($temp['FamiliesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'],$temp['FamiliesSelected']['Species']) :
+            (!!empty($temp['VernNamesSelected']['Species']) && !empty($temp['GenusSelected']['Species']) && !empty($temp['FamiliesSelected']['Species']) ? array_intersect($temp['GenusSelected']['Species'],$temp['FamiliesSelected']['Species']) :
+            (!empty($temp['VernNamesSelected']['Species']) && !!empty($temp['GenusSelected']['Species']) && !!empty($temp['FamiliesSelected']['Species']) ? $temp['VernNamesSelected']['Species'] :
+            (!!empty($temp['VernNamesSelected']['Species']) && !empty($temp['GenusSelected']['Species']) && !!empty($temp['FamiliesSelected']['Species']) ? $temp['GenusSelected']['Species'] :
+            (!!empty($temp['VernNamesSelected']['Species']) && !!empty($temp['GenusSelected']['Species']) && !empty($temp['FamiliesSelected']['Species']) ? $temp['FamiliesSelected']['Species'] :
             NULL)))))));
 
             if(!empty($output['SubPlot'])){
