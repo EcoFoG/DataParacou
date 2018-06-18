@@ -11,9 +11,9 @@ class Request_model extends CI_Model {
 
     public function insertRequest($d)
     {
-        $columns = !empty($d['columns']) ? implode(',',$d['columns']) : NULL;
-        $years = !empty($d['years']) ? implode(',',$d['years']) : NULL;
-        $plots = !empty($d['plots']) ? implode(',',$d['plots']) : NULL;
+        $columns = !empty($d['columns[]']) ? implode(',',$d['columns[]']) : NULL;
+        $years = !empty($d['years[]']) ? implode(',',$d['years[]']) : NULL;
+        $plots = !empty($d['plots[]']) ? implode(',',$d['plots[]']) : NULL;
 
         $string = array(
             'email'=>$d['email'],
