@@ -199,13 +199,16 @@ class Admin extends CI_Controller {
         $requestinfo = $this->request_model->getRequestInfo($id);
         $data["id"] = $id;
         if ($requestinfo) {
-            $data['requestinfo'] = $requestinfo;
-            if ($this->input->post('apply')) {
-                $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
-                $clean["id"] = $id;
-                $clean["accepted"] = $requestinfo->accepted;
-                $this->request_model->updateRequestInfo($clean);
+            $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
+            $clean["id"] = $id;
+            $clean["accepted"] = $requestinfo->accepted;
+            $this->request_model->updateRequestInfo($clean);
+            if ($this->input->post('apply') === "Accept") {
+                $this->_accept_request($id);
+            } else if ($this->input->post('apply') === "Decline") {
+                $this->_decline_request($id);
             }
+            $data['requestinfo'] = $requestinfo;
         } else {
             $this->session->set_flashdata('error_message',"The request n°$id doesn't exist");
             redirect(base_url().'admin/list_requests/');
@@ -233,14 +236,11 @@ class Admin extends CI_Controller {
         $this->email->clear();
     }
 
-    public function accept_request($id){
+    private function _accept_request($id){
         $this->checkRights();
         $requestinfo = $this->request_model->getRequestInfo($id);
         $user_duplicated = $this->user_model->isDuplicate($requestinfo->email);
         if (($requestinfo) && !isset($requestinfo->accepted)) {
-            $clean = $this->security->xss_clean($this->input->post(NULL, TRUE));
-            $clean["id"] = $id;
-            $this->request_model->updateRequestInfo($clean);
             $message = "$requestinfo->firstname $requestinfo->lastname,<br> Your request has been accepted.<br> You will receive another mail with an invitation link <br> $requestinfo->specific_conditions";
             $this->_sendApproveMail($requestinfo, $message);
             if($user_duplicated){
@@ -258,7 +258,7 @@ class Admin extends CI_Controller {
         }
     }
 
-    public function decline_request($id){
+    private function _decline_request($id){
         $this->checkRights();
         $requestinfo = $this->request_model->getRequestInfo($id);
         if (($requestinfo) && !isset($requestinfo->accepted)) {

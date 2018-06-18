@@ -98,7 +98,7 @@
                 </div>
                 <div class="form-group">
                     <?php echo form_label('Fields requested');?>
-                  <select class="multiple form-control" name="Columns[]" multiple="multiple" style="width:100%;">
+                  <select class="multiple form-control" name="columns" multiple="multiple" style="width:100%;">
                     <?php
                         foreach($columns_name as $key=>$row){
                             echo "<option>".$row['column_name']."</option>";
@@ -108,7 +108,7 @@
                 </div>
                 <div class="form-group">
                     <?php echo form_label('Years requested');?>
-                    <select class="multiple form-control" name="Years[]" multiple="multiple" style="width:100%;">
+                    <select class="multiple form-control" name="years" multiple="multiple" style="width:100%;">
                     <?php
                         foreach($CensusYear as $key=>$row){
                             echo "<option>".$row['CensusYear']."</option>";
@@ -118,7 +118,7 @@
                 </div>
                 <div class="form-group">
                     <?php echo form_label('Plots requested');?>
-                    <select class="multiple form-control" name="Plot[]" multiple="multiple" style="width:100%;">
+                    <select class="multiple form-control" name="plots" multiple="multiple" style="width:100%;">
                     <?php
                         foreach($Plot as $key=>$row){
                             echo "<option>".$row['Plot']."</option>";
