@@ -13,7 +13,7 @@
         </li>
     </ul>
     <form class="navbar-text form-inline">
-        <a href="<?php echo base_url().'main' ?>">Back to homepage</a>
+        <a href="<?php echo base_url().'main/?Plot[]=6' ?>">Back to homepage</a>
     </form>
   </div>
 </nav>

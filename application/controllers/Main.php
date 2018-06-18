@@ -100,7 +100,7 @@ class Main extends CI_Controller {
     private function _paginate($total_rows, $n_limit){
         $this->config->load("pagination");
         $conf_pagination = $this->config->item("pagination");
-        $conf_pagination['base_url'] = base_url()."main/" ;
+        $conf_pagination['base_url'] = base_url()."main/?Plot[]=6" ;
         $conf_pagination['total_rows'] = $total_rows;
         $conf_pagination['per_page'] = $n_limit;
         $this->pagination->initialize($conf_pagination);
@@ -368,7 +368,7 @@ class Main extends CI_Controller {
             foreach($userInfo as $key=>$val){
                 $this->session->set_userdata($key, $val);
             }
-            redirect(base_url().'main/');
+            redirect(base_url().'main/?Plot[]=6');
 
         }
     }
@@ -396,7 +396,7 @@ class Main extends CI_Controller {
                 $this->session->set_userdata($key, $val);
             }
             
-            redirect(base_url().'main/');
+            redirect(base_url().'main/?Plot[]=6');
         }
 
     }
