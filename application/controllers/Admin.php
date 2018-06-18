@@ -110,7 +110,13 @@ class Admin extends CI_Controller {
                     $r = $this->email->send();
 
                     $this->email->clear();
-                    echo '<a href="'.base_url().'admin/list_users" >Back to user list</a>';
+                    $this->load->view('admin/header');
+                    echo '<div class="container mt-5">
+                            <div class="row justify-content-center">
+                            <a href="'.base_url().'admin/list_users" >Back to user list</a>
+                            </div>
+                          </div>';
+                    $this->load->view('admin/footer');
                 }
             }
         }

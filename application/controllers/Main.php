@@ -448,8 +448,14 @@ class Main extends CI_Controller {
                 $requestInfo = $this->request_model->getRequestInfo($requestId);
                 $this->_requestMail($requestInfo);
                 $this->load->view('header', $this->header);
-                echo '<br>Your request has been taken, you will receive<br>'
-                . '<a href="'. base_url().'/main/">Back to login</a>';
+                echo '<div class="container mt-5">
+            <div class="row justify-content-center">
+            Your request has been taken, you will receive an e-mail when your request will be accepted
+            </div>
+            <div class="row justify-content-center">
+            <a href="'. base_url().'main/">Back to login</a>
+            </div>
+        </div>';
                 $this->load->view('footer');
             }
         }
@@ -551,16 +557,24 @@ class Main extends CI_Controller {
             $this->email->from("noreply@paracoudata.cirad.fr", 'Paracou data');
             $this->email->to($email);
 
-            $this->email->subject('Email Test');
+            $this->email->subject('Password reset');
             $this->email->message($message);
             
             $r = $this->email->send();
             if(!$r){
                 log_message('error', $this->email->print_debugger());
             }
-            
-            exit;
 
+            $this->load->view('header', $this->header);
+            echo '<div class="container mt-5">
+            <div class="row justify-content-center">
+                An e-mail with a password reset link has be sent to the e-mail you
+            </div>
+            <div class="row justify-content-center">
+            <a href="'. base_url().'main/">Back to login</a>
+            </div>
+        </div>';
+            $this->load->view('footer');
         }
 
     }
