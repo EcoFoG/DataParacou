@@ -61,13 +61,13 @@ class Request_model extends CI_Model {
         $this->db->delete('requests', array('id' => $id));
     }
 
-    public function acceptRequest($id){
+    public function acceptRequest($id, $idAcceptor){
       $data = array(
-             'accepted' => date('Y/m/d')
+             'accepted' => date('Y/m/d'),
+             'accepted_by' => $idAcceptor,
           );
       $this->db->where('id', $id);
       $this->db->update('requests', $data);
-
     }
 
     public function declineRequest($id){

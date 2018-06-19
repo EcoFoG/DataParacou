@@ -86,7 +86,8 @@ class Admin extends CI_Controller {
                     $clean["request_id"] = isset($idRequest) ? $idRequest : NULL;
                     $id = $this->user_model->insertUser($clean);
 
-                    !(isset($idRequest)) ?: $this->request_model->acceptRequest($idRequest); // Accept request if user is added
+                    $idAcceptor = $this->session->userdata['id'];
+                    !(isset($idRequest)) ?: $this->request_model->acceptRequest($idRequest, $idAcceptor); // Accept request if user is added
                     $token = $this->user_model->insertToken($id);
                     $dest = $this->input->post('email');
 
@@ -144,7 +145,8 @@ class Admin extends CI_Controller {
                 $clean['user_id'] = $id;
                 $clean['request_id'] = $request_id;
                 $this->user_model->editUserInfo($clean);
-                !(isset($request_id)) ?: $this->request_model->acceptRequest($request_id); // Accept request if user is added
+                $idAcceptor = $this->session->userdata['id'];
+                !(isset($request_id)) ?: $this->request_model->acceptRequest($request_id, $idAcceptor); // Accept request if user is added
                 redirect(base_url().'admin/list_users/');
 
 
@@ -182,6 +184,7 @@ class Admin extends CI_Controller {
         $flash['flash_message'] = $this->session->flashdata('error_message');
         $requests = $this->request_model->getRequestList(); // get requests list
         $data['requests'] = $requests;
+        $data['user_model'] = $this->user_model;
 
         if(isset($get["csv"])){
             $array = json_decode(json_encode($requests), True);

@@ -40,12 +40,16 @@ $(document).ready(function() {
     </thead>
     <tbody>
         <?php
+
         foreach($requests as $value){
+
+            $userAcceptor = $user_model->getUserInfo($value->accepted_by);
+
             if ($value->accepted === "Declined") {
-                $accepted = $value->accepted;
+                $accepted = $value->accepted." by ".$userAcceptor->first_name ;
                 $class = " class = \"table-danger\" ";
             } else if (isset($value->accepted)) {
-                $accepted = $value->accepted;
+                $accepted = $value->accepted." by ".$userAcceptor->first_name ;
                 $class = " class = \"table-success\" ";
             } else {
                 $accepted = "Not accepted yet";

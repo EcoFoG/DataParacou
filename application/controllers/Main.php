@@ -439,7 +439,6 @@ class Main extends CI_Controller {
 
             $post = $this->input->post();
             $clean = $this->security->xss_clean($post);
-            var_dump($post);
             $requestId = $this->request_model->insertRequest($clean);
 
             if(!$requestId){
