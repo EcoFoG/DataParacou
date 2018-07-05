@@ -135,6 +135,7 @@ class Admin extends CI_Controller {
         $data["id"] = $id;
         if ($userinfo) {
             $data['userinfo'] = $userinfo;
+            $data['disableRoleField'] = $userinfo->id === $this->session->userdata['id'] ? TRUE : FALSE;
 
             $this->form_validation->set_rules('first_name', 'First Name', 'required');
             $this->form_validation->set_rules('last_name', 'Last Name', 'required');

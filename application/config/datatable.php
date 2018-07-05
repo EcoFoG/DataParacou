@@ -6,7 +6,7 @@ $config['columns'] = array(
     'Plot',
     'SubPlot',
     'TreeFieldNum',
-    'PlotSurface',
+    'PlotArea',
     'idTree',
     'Xfield',
     'Yfield',
@@ -20,6 +20,8 @@ $config['columns'] = array(
     'CodeAlive',
     'CodeMeas',
     'CensusYear',
+    'CensusDate',
+    'DateMesFiable',
     'Family',
     'Genus',
     'Species',
@@ -44,10 +46,12 @@ $config["headers"] = array(
     "Longitude" => "",
     "Vern name" => "",
     "Circumference" => "",
-    "Circumference corrected" => "",
+    "Corrected circumference" => "",
     "Status" => "0 = dead ; 1 = alive",
     "Measure code" => "",
     "Year of census" => "",
+    "Census date" => "",
+    "Census date certainty" => "",
     "Family" => "",
     "Genus" => "",
     "Species" => "",
@@ -58,7 +62,7 @@ $config["headers"] = array(
 $tableRelativeFontSize = 80; // Taille relative de la table en % (modifie aussi la taille de la police)
 
 $config['table_template'] = array (
-    'table_open'          => "<table id=\"datatable\" class=\"table table-responsive table-striped table-bordered\" width=\"100%\" style=\"font-size: $tableRelativeFontSize%;\" cellspacing=\"0\">",
+    'table_open'          => "<table id=\"datatable\" class=\"table table-striped table-bordered\" width=\"100%\" style=\"font-size: $tableRelativeFontSize%;\" cellspacing=\"0\">",
 
     'heading_row_start'   => '<tr>',
     'heading_row_end'     => '</tr>',

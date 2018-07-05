@@ -43,7 +43,13 @@ $(function() {
                             break;
                         case "role":
                             echo form_label(humanize($key),"$key");
-                            echo form_dropdown($key, array('user'=>'user','admin'=>'admin'), set_value("$key",$value), array('id'=> "$key", 'class'=>'form-control p-1'));
+                            $roleAttr = array('id'=> "$key", 'class'=>'form-control p-1');
+
+                            if ($disableRoleField) {
+                                $roleAttr['disabled'] = 'disabled';
+                            }
+                            
+                            echo form_dropdown($key, array('user'=>'user','admin'=>'admin'), set_value("$key",$value), $roleAttr);
                             break;
                         default:
                             echo form_label(humanize($key),"$key");
