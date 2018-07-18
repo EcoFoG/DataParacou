@@ -4,29 +4,29 @@
             <h5>Informations</h5>
             <?php
                 $fattr = array('id' => 'showrequest');
-                echo form_open("",$fattr); ?>
+                echo form_open("", $fattr); ?>
             <?php
-            foreach($requestinfo as $key=>$value){
+            foreach ($requestinfo as $key=>$value) {
                 echo '<div class="form-group">';
-                    switch($key) {
+                switch ($key) {
                         case "address":
-                            echo form_label(humanize($key),"$key");
-                            echo form_textarea(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => $value, 'disabled' => TRUE));
+                            echo form_label(humanize($key), "$key");
+                            echo form_textarea(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => $value, 'disabled' => true));
                             break;
                         case "summary_research":
-                            echo form_label(humanize($key),"$key");
-                            echo form_textarea(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => $value , 'disabled' => TRUE));
+                            echo form_label(humanize($key), "$key");
+                            echo form_textarea(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => $value , 'disabled' => true));
                             break;
                         case "description_data":
-                            echo form_label(humanize($key),"$key");
-                            echo form_textarea(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => $value , 'disabled' => TRUE));
+                            echo form_label(humanize($key), "$key");
+                            echo form_textarea(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => $value , 'disabled' => true));
                             break;
                         case "specific_conditions":
-                            echo form_label(humanize($key),"$key");
+                            echo form_label(humanize($key), "$key");
                             echo form_textarea(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => $value ));
                             break;
                         case "valorisation":
-                            echo form_label(humanize($key),"$key");
+                            echo form_label(humanize($key), "$key");
                             echo form_input(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => $value ));
                             break;
                         case "years":
@@ -42,11 +42,11 @@
                         case "id":
                             break;
                         default:
-                            echo form_label(humanize($key),"$key");
-                            echo form_input(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => $value , 'disabled' => TRUE));
+                            echo form_label(humanize($key), "$key");
+                            echo form_input(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => $value , 'disabled' => true));
                             break;
                     }
-                    echo form_error($key);
+                echo form_error($key);
                 echo '</div>';
             }?>
         <?php

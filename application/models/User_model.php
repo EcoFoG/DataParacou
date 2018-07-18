@@ -1,10 +1,11 @@
 <?php
-class User_model extends CI_Model {
-
+class User_model extends CI_Model
+{
     public $status;
     public $roles;
 
-    function __construct(){
+    public function __construct()
+    {
         // Call the Model constructor
         parent::__construct();
         $this->status = $this->config->item('status');
@@ -13,9 +14,9 @@ class User_model extends CI_Model {
 
     public function insertUser($d)
     {
-            $role = isset($d['role']) && ($d['role'] == '1') ? $this->roles[1]: $this->roles[0];
-            $expires = (!empty($d['expires']) && isset($d['expires'])) ? $d['expires']: NULL;
-            $string = array(
+        $role = isset($d['role']) && ($d['role'] == '1') ? $this->roles[1]: $this->roles[0];
+        $expires = (!empty($d['expires']) && isset($d['expires'])) ? $d['expires']: null;
+        $string = array(
                 'first_name'=>$d['firstname'],
                 'last_name'=>$d['lastname'],
                 'email'=>$d['email'],
@@ -25,12 +26,13 @@ class User_model extends CI_Model {
                 'status'=>$this->status[0],
                 'request_id'=>$d['request_id']
             );
-            $q = $this->db->insert_string('users',$string);
-            $this->db->query($q);
-            return $this->db->insert_id();
+        $q = $this->db->insert_string('users', $string);
+        $this->db->query($q);
+        return $this->db->insert_id();
     }
     
-    public function deleteUser($id){
+    public function deleteUser($id)
+    {
         $this->db->delete('users', array('id' => $id));
         $this->db->delete('tokens', array('user_id' => $id));
     }
@@ -38,7 +40,7 @@ class User_model extends CI_Model {
     public function isDuplicate($email)
     {
         $q = $this->db->get_where('users', array('email' => $email), 1);
-        return $this->db->affected_rows() > 0 ? $q->row() : FALSE;
+        return $this->db->affected_rows() > 0 ? $q->row() : false;
     }
     
     public function getUserList()
@@ -63,38 +65,36 @@ class User_model extends CI_Model {
                 'user_id'=>$user_id,
                 'created'=>$date
             );
-        $query = $this->db->insert_string('tokens',$string);
+        $query = $this->db->insert_string('tokens', $string);
         $this->db->query($query);
         return $token . $user_id;
     }
 
     public function isTokenValid($token)
     {
-       $tkn = substr($token,0,30);
-       $uid = substr($token,30);
+        $tkn = substr($token, 0, 30);
+        $uid = substr($token, 30);
 
         $q = $this->db->get_where('tokens', array(
             'tokens.token' => $tkn,
             'tokens.user_id' => $uid), 1);
 
-        if($this->db->affected_rows() > 0){
+        if ($this->db->affected_rows() > 0) {
             $row = $q->row();
             $user_info = $this->getUserInfo($row->user_id);
             return $user_info;
-
-        }else{
+        } else {
             return false;
         }
-
     }
 
     public function getUserInfo($id)
     {
         $q = $this->db->get_where('users', array('id' => $id), 1);
-        if($this->db->affected_rows() > 0){
+        if ($this->db->affected_rows() > 0) {
             $row = $q->row();
             return $row;
-        }else{
+        } else {
             error_log('no user found getUserInfo('.$id.')');
             return false;
         }
@@ -111,7 +111,7 @@ class User_model extends CI_Model {
         $this->db->update('users', $data);
         $success = $this->db->affected_rows();
 
-        if(!$success){
+        if (!$success) {
             error_log('Unable to updateUserInfo('.$post['user_id'].')');
             return false;
         }
@@ -121,7 +121,7 @@ class User_model extends CI_Model {
     }
     public function editUserInfo($post)
     {
-        $expires = isset($post['expires']) && !empty($post['expires']) ? $post['expires']: NULL;
+        $expires = isset($post['expires']) && !empty($post['expires']) ? $post['expires']: null;
         $data = array(
                'expires' => $expires,
                'role' => $post['role'],
@@ -135,7 +135,7 @@ class User_model extends CI_Model {
         $this->db->update('users', $data);
         $success = $this->db->affected_rows();
 
-        if(!$success){
+        if (!$success) {
             error_log('Unable to editUserInfo('.$post['user_id'].')');
             return false;
         }
@@ -154,15 +154,15 @@ class User_model extends CI_Model {
         
         $expiresDate = $userInfo->expires;
         $timestamp = strtotime($expiresDate);
-        if ($timestamp === FALSE) {
-          $timestamp = strtotime(str_replace('/', '-', $expiresDate));
+        if ($timestamp === false) {
+            $timestamp = strtotime(str_replace('/', '-', $expiresDate));
         }
 
-        if(!$this->password->validate_password($post['password'], $userInfo->password)){
+        if (!$this->password->validate_password($post['password'], $userInfo->password)) {
             error_log('Unsuccessful login attempt('.$post['email'].')');
             $this->session->set_flashdata('flash_message', 'The login was unsucessful');
             return false;
-        } else if ((isset($expiresDate)) && (time()>$timestamp)) {
+        } elseif ((isset($expiresDate)) && (time()>$timestamp)) {
             error_log('Unsuccessful login attempt('.$post['email'].') account is expired');
             $this->session->set_flashdata('flash_message', 'The account is expired');
             return false;
@@ -184,10 +184,10 @@ class User_model extends CI_Model {
     public function getUserInfoByEmail($email)
     {
         $q = $this->db->get_where('users', array('email' => $email), 1);
-        if($this->db->affected_rows() > 0){
+        if ($this->db->affected_rows() > 0) {
             $row = $q->row();
             return $row;
-        }else{
+        } else {
             error_log('no user found getUserInfo('.$email.')');
             return false;
         }
@@ -199,11 +199,10 @@ class User_model extends CI_Model {
         $this->db->update('users', array('password' => $post['password']));
         $success = $this->db->affected_rows();
 
-        if(!$success){
+        if (!$success) {
             error_log('Unable to updatePassword('.$post['user_id'].')');
             return false;
         }
         return true;
     }
-
 }

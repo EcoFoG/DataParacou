@@ -1,20 +1,21 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
-class Main extends CI_Controller {
-
+class Main extends CI_Controller
+{
     public $status;
     public $roles;
     private $header;
 
-    function __construct(){ // Constructeur http://php.net/manual/fr/language.oop5.decon.php
+    public function __construct()
+    { // Constructeur http://php.net/manual/fr/language.oop5.decon.php
         parent::__construct();
 
         // Appelle les modèles depuis application/models/
-        $this->load->model('User_model', 'user_model', TRUE);
-        $this->load->model('Request_model', 'request_model', TRUE);
-        $this->load->model('Data_model', 'data_model', TRUE);
-        $this->load->model('Filter_state_model', 'filter_state_model', TRUE);
+        $this->load->model('User_model', 'user_model', true);
+        $this->load->model('Request_model', 'request_model', true);
+        $this->load->model('Data_model', 'data_model', true);
+        $this->load->model('Filter_state_model', 'filter_state_model', true);
         // Appelle les items "roles" et "status" du fichier application/config/config.php
         $this->status = $this->config->item('status');
         $this->roles = $this->config->item('roles');
@@ -35,25 +36,26 @@ class Main extends CI_Controller {
         $this->config->load("datatable");
 
         $this->header['brandName'] = $this->config->item("brandName");
-
     }
     // Redirections
-    protected function _checkLogin(){
-        if($this->input->post("admin")){ // Si lien "Admin" pressé redirige vers le panel admin
+    protected function _checkLogin()
+    {
+        if ($this->input->post("admin")) { // Si lien "Admin" pressé redirige vers le panel admin
             redirect(base_url().'admin');
         }
-        if($this->input->post("disconnect")){ // Si lien "Logout" pressé redirige vers la fonction logout()
+        if ($this->input->post("disconnect")) { // Si lien "Logout" pressé redirige vers la fonction logout()
             redirect(base_url().'main/logout/');
         }
         // Redirection vers login() si la session n'existe pas ou si le comtpe est expiré
-        if(empty($this->session->userdata['email']) || ((!empty($this->session->userdata['expires'])) && (time() > strtotime(str_replace('/', '-', $this->session->userdata['expires']))))){
+        if (empty($this->session->userdata['email']) || ((!empty($this->session->userdata['expires'])) && (time() > strtotime(str_replace('/', '-', $this->session->userdata['expires']))))) {
             redirect(base_url().'main/login/');
         }
         return $this->session->userdata('role');
     }
 
     // Put config files in variables
-    private function _configTable(&$data, &$filters, &$columns){
+    private function _configTable(&$data, &$filters, &$columns)
+    {
         /* Configuration of the data table in application/config/datatable.php */
         $tmpl = $this->config->item("table_template");
         $data['headers'] = $this->config->item("headers");
@@ -64,7 +66,8 @@ class Main extends CI_Controller {
         $columns = $this->config->item("columns");
         $this->table->set_template($tmpl); // Apply template to the generated table
     }
-    private function _getFilters($filters, $paracouDB) {
+    private function _getFilters($filters, $paracouDB)
+    {
         $reducedFilters = call_user_func_array('array_merge', $filters);
         foreach ($reducedFilters as $key=>$value) { // Pour chaque filtre dans application/config/datatable.php
             $dataFilters[$key] = $this->cache->get('F'.$key); // Cherche dans le cache si les niveaux de filtres ne sont pas déjà enregistrés
@@ -80,25 +83,24 @@ class Main extends CI_Controller {
         return $dataFilters;
     }
 
-    private function _getCircBoundaries(&$data, $paracouDB){
-      $circDBMin = $this->cache->get('circDBMin');
-      $circDBMax = $this->cache->get('circDBMax');
-      if (empty($circDBMin) || empty($circDBMax)) {
-          $circBoundaries = $this->data_model->getCircBoundaries();
-          $data['circDBMax'] = $circBoundaries['circDBMax'];
-          $data['circDBMin'] = $circBoundaries['circDBMin'];
-          $this->cache->save('circDBMax', $circBoundaries['circDBMax'], 86400);
-          $this->cache->save('circDBMin', $circBoundaries['circDBMin'], 86400);
-      } else {
-          $data['circDBMax'] = $circDBMax;
-          $data['circDBMin'] = $circDBMin;
-      }
-
-      
-
+    private function _getCircBoundaries(&$data, $paracouDB)
+    {
+        $circDBMin = $this->cache->get('circDBMin');
+        $circDBMax = $this->cache->get('circDBMax');
+        if (empty($circDBMin) || empty($circDBMax)) {
+            $circBoundaries = $this->data_model->getCircBoundaries();
+            $data['circDBMax'] = $circBoundaries['circDBMax'];
+            $data['circDBMin'] = $circBoundaries['circDBMin'];
+            $this->cache->save('circDBMax', $circBoundaries['circDBMax'], 86400);
+            $this->cache->save('circDBMin', $circBoundaries['circDBMin'], 86400);
+        } else {
+            $data['circDBMax'] = $circDBMax;
+            $data['circDBMin'] = $circDBMin;
+        }
     }
     /* Crée les liens de pagination à partir du nombre de lignes et du nombre de ligne à afficher */
-    private function _paginate($total_rows, $n_limit){
+    private function _paginate($total_rows, $n_limit)
+    {
         $this->config->load("pagination");
         $conf_pagination = $this->config->item("pagination");
         $conf_pagination['base_url'] = base_url()."main/?Plot[]=6" ;
@@ -107,18 +109,19 @@ class Main extends CI_Controller {
         $this->pagination->initialize($conf_pagination);
     }
 
-    public function index(){
+    public function index()
+    {
         $filters = $columns = $data = array();
 
         $data['role'] = $this->_checkLogin();
 
         #### get GET method variables ####
-        $get = $this->input->get(NULL, FALSE);
+        $get = $this->input->get(null, false);
 
         $data['get'] = $get;
 
         #### Configuration de la base de données dans application/config/database.php ####
-        $paracouDB = $this->load->database('paracou', TRUE);
+        $paracouDB = $this->load->database('paracou', true);
         $this->_configTable($data, $filters, $columns);
 
         #### Get levels of filters in the databases ####
@@ -128,7 +131,7 @@ class Main extends CI_Controller {
         $data['circMax'] = !(empty($this->input->get('circMax'))) ? $this->input->get('circMax') : $data['defaultCircBoundaries']['circMax']; // Opérateur ternaire : http://php.net/manual/fr/language.operators.comparison.php#language.operators.comparison.ternary
         $data['circMin'] = !(empty($this->input->get('circMin'))) ? $this->input->get('circMin') : $data['defaultCircBoundaries']['circMin']; // Si circMin passé dans l'url, l'enregistrer dans la variable $circMin sinon utiliser la valeur de $defaultCircBoundaries (référence fonction index application/controller/main.php)
         #### Get Circ boundaries in the database ####
-        $this->_getCircBoundaries($data,$paracouDB);
+        $this->_getCircBoundaries($data, $paracouDB);
         
         #### Views ####
         $this->load->view('header', $this->header);
@@ -137,8 +140,8 @@ class Main extends CI_Controller {
     }
 
     #### Génère un JSON pour le javascript de application/views/index.php ####
-    public function api_table(){
-
+    public function api_table()
+    {
         $this->_checkLogin();
 
         $get = $this->input->get(null, false);
@@ -155,10 +158,10 @@ class Main extends CI_Controller {
         $offset = !empty($get['page']) && $get['page']>1 ? ($get['page']-1)*$n_limit : 0;
 
         #### Génère le CSV si l'input "CSV" existe ####
-        if(!empty($get['csv'])){
+        if (!empty($get['csv'])) {
             $csv = $this->data_model->getCsv($reducedFilters, $get, $columns, $circMin, $circMax);
             $time = time();
-            $name = "Paracou".mdate("%Y%m%d",$time).".csv"; // Name of the CSV
+            $name = "Paracou".mdate("%Y%m%d", $time).".csv"; // Name of the CSV
             force_download($name, $csv);
         #### Sinon génère la table ####
         } else {
@@ -171,7 +174,8 @@ class Main extends CI_Controller {
     }
 
     #### Génère un JSON pour le javascript de application/views/index.php ####
-    public function api_filters(){
+    public function api_filters()
+    {
         $this->_checkLogin();
 
         $get = $this->input->get();
@@ -186,7 +190,7 @@ class Main extends CI_Controller {
 
         if (!empty($get['VernNamesSelected'])) {
             foreach ($get['VernNamesSelected'] as $value) {
-                    $VernNamesSelected[$value] = $cache['VernNamesSelected'][$value];
+                $VernNamesSelected[$value] = $cache['VernNamesSelected'][$value];
             }
             $temp['VernNamesSelected']['Family'] = call_user_func_array('array_merge', array_column($VernNamesSelected, 'Family'));
             $temp['VernNamesSelected']['Genus'] = call_user_func_array('array_merge', array_column($VernNamesSelected, 'Genus'));
@@ -195,7 +199,7 @@ class Main extends CI_Controller {
 
         if (!empty($get['FamiliesSelected'])) {
             foreach ($get['FamiliesSelected'] as $value) {
-                    $FamiliesSelected[$value] = $cache['FamiliesSelected'][$value];
+                $FamiliesSelected[$value] = $cache['FamiliesSelected'][$value];
             }
             $temp['FamiliesSelected']['Genus'] = call_user_func_array('array_merge', array_column($FamiliesSelected, 'Genus'));
             $temp['FamiliesSelected']['Species'] = call_user_func_array('array_merge', array_column($FamiliesSelected, 'Species'));
@@ -203,122 +207,123 @@ class Main extends CI_Controller {
 
         if (!empty($get['GenusSelected'])) {
             foreach ($get['GenusSelected'] as $value) {
-                    $GenusSelected[$value] = $cache['GenusSelected'][$value];
+                $GenusSelected[$value] = $cache['GenusSelected'][$value];
             }
             $temp['GenusSelected']['Family'] = call_user_func_array('array_merge', array_column($GenusSelected, 'Family'));
             $temp['GenusSelected']['Species'] = call_user_func_array('array_merge', array_column($GenusSelected, 'Species'));
         }
         if (!empty($get['SpeciesSelected'])) {
             foreach ($get['SpeciesSelected'] as $value) {
-                    $SpeciesSelected[$value] = $cache['SpeciesSelected'][$value];
+                $SpeciesSelected[$value] = $cache['SpeciesSelected'][$value];
             }
-            $temp['SpeciesSelected']['Family'] = call_user_func_array('array_merge',array_column($SpeciesSelected,'Family'));
-            $temp['SpeciesSelected']['Genus'] = call_user_func_array('array_merge',array_column($SpeciesSelected,'Genus'));
+            $temp['SpeciesSelected']['Family'] = call_user_func_array('array_merge', array_column($SpeciesSelected, 'Family'));
+            $temp['SpeciesSelected']['Genus'] = call_user_func_array('array_merge', array_column($SpeciesSelected, 'Genus'));
         }
 
         if (!empty($get['PlotsSelected'])) {
             foreach ($get['PlotsSelected'] as $key=>$value) {
-                     $tempSubPlot[$value] = $cache['SubPlot'][$value];
-                     $tempCensusYear[$value] = $cache['CensusYear'][$value];
+                $tempSubPlot[$value] = $cache['SubPlot'][$value];
+                $tempCensusYear[$value] = $cache['CensusYear'][$value];
             }
-            $output['SubPlot'] = array_unique(call_user_func_array('array_merge',$tempSubPlot));
-            $output['CensusYear'] = array_unique(call_user_func_array('array_merge',$tempCensusYear));
+            $output['SubPlot'] = array_unique(call_user_func_array('array_merge', $tempSubPlot));
+            $output['CensusYear'] = array_unique(call_user_func_array('array_merge', $tempCensusYear));
         }
 
         if (!empty($get['CensusYearsSelected'])) {
             foreach ($get['CensusYearsSelected'] as $key=>$value) {
-                     $tempPlot[$value] = $cache['Plot'][$value];
+                $tempPlot[$value] = $cache['Plot'][$value];
             }
-            $output['Plot'] = array_unique(call_user_func_array('array_merge',$tempPlot));
+            $output['Plot'] = array_unique(call_user_func_array('array_merge', $tempPlot));
         }
 
 //            How to intersect array only if they exists
 //            https://stackoverflow.com/questions/49694616/how-to-intersect-array-only-if-they-exists/49696487#49696487
 
-        $output['Family'] = (!empty($temp['VernNamesSelected']['Family']) && !empty($temp['GenusSelected']['Family']) && !empty($temp['SpeciesSelected']['Family']) ? array_intersect($temp['VernNamesSelected']['Family'],$temp['GenusSelected']['Family'],$temp['SpeciesSelected']['Family']) :
-            (!empty($temp['VernNamesSelected']['Family']) && !empty($temp['GenusSelected']['Family']) && !!empty($temp['SpeciesSelected']['Family']) ? array_intersect($temp['VernNamesSelected']['Family'],$temp['GenusSelected']['Family']) :
-            (!empty($temp['VernNamesSelected']['Family']) && !!empty($temp['GenusSelected']['Family']) && !empty($temp['SpeciesSelected']['Family']) ? array_intersect($temp['VernNamesSelected']['Family'],$temp['SpeciesSelected']['Family']) :
-            (!!empty($temp['VernNamesSelected']['Family']) && !empty($temp['GenusSelected']['Family']) && !empty($temp['SpeciesSelected']['Family']) ? array_intersect($temp['GenusSelected']['Family'],$temp['SpeciesSelected']['Family']) :
+        $output['Family'] = (!empty($temp['VernNamesSelected']['Family']) && !empty($temp['GenusSelected']['Family']) && !empty($temp['SpeciesSelected']['Family']) ? array_intersect($temp['VernNamesSelected']['Family'], $temp['GenusSelected']['Family'], $temp['SpeciesSelected']['Family']) :
+            (!empty($temp['VernNamesSelected']['Family']) && !empty($temp['GenusSelected']['Family']) && !!empty($temp['SpeciesSelected']['Family']) ? array_intersect($temp['VernNamesSelected']['Family'], $temp['GenusSelected']['Family']) :
+            (!empty($temp['VernNamesSelected']['Family']) && !!empty($temp['GenusSelected']['Family']) && !empty($temp['SpeciesSelected']['Family']) ? array_intersect($temp['VernNamesSelected']['Family'], $temp['SpeciesSelected']['Family']) :
+            (!!empty($temp['VernNamesSelected']['Family']) && !empty($temp['GenusSelected']['Family']) && !empty($temp['SpeciesSelected']['Family']) ? array_intersect($temp['GenusSelected']['Family'], $temp['SpeciesSelected']['Family']) :
             (!empty($temp['VernNamesSelected']['Family']) && !!empty($temp['GenusSelected']['Family']) && !!empty($temp['SpeciesSelected']['Family']) ? $temp['VernNamesSelected']['Family'] :
             (!!empty($temp['VernNamesSelected']['Family']) && !empty($temp['GenusSelected']['Family']) && !!empty($temp['SpeciesSelected']['Family']) ? $temp['GenusSelected']['Family'] :
             (!!empty($temp['VernNamesSelected']['Family']) && !!empty($temp['GenusSelected']['Family']) && !empty($temp['SpeciesSelected']['Family']) ? $temp['SpeciesSelected']['Family'] :
-            NULL)))))));
+            null)))))));
 
-        $output['Genus'] = (!empty($temp['VernNamesSelected']['Genus']) && !empty($temp['FamiliesSelected']['Genus']) && !empty($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'],$temp['FamiliesSelected']['Genus'],$temp['SpeciesSelected']['Genus']) :
-            (!empty($temp['VernNamesSelected']['Genus']) && !empty($temp['FamiliesSelected']['Genus']) && !!empty($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'],$temp['FamiliesSelected']['Genus']) :
-            (!empty($temp['VernNamesSelected']['Genus']) && !!empty($temp['FamiliesSelected']['Genus']) && !empty($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'],$temp['SpeciesSelected']['Genus']) :
-            (!!empty($temp['VernNamesSelected']['Genus']) && !empty($temp['FamiliesSelected']['Genus']) && !empty($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['FamiliesSelected']['Genus'],$temp['SpeciesSelected']['Genus']) :
+        $output['Genus'] = (!empty($temp['VernNamesSelected']['Genus']) && !empty($temp['FamiliesSelected']['Genus']) && !empty($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'], $temp['FamiliesSelected']['Genus'], $temp['SpeciesSelected']['Genus']) :
+            (!empty($temp['VernNamesSelected']['Genus']) && !empty($temp['FamiliesSelected']['Genus']) && !!empty($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'], $temp['FamiliesSelected']['Genus']) :
+            (!empty($temp['VernNamesSelected']['Genus']) && !!empty($temp['FamiliesSelected']['Genus']) && !empty($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['VernNamesSelected']['Genus'], $temp['SpeciesSelected']['Genus']) :
+            (!!empty($temp['VernNamesSelected']['Genus']) && !empty($temp['FamiliesSelected']['Genus']) && !empty($temp['SpeciesSelected']['Genus']) ? array_intersect($temp['FamiliesSelected']['Genus'], $temp['SpeciesSelected']['Genus']) :
             (!empty($temp['VernNamesSelected']['Genus']) && !!empty($temp['FamiliesSelected']['Genus']) && !!empty($temp['SpeciesSelected']['Genus']) ? $temp['VernNamesSelected']['Genus'] :
             (!!empty($temp['VernNamesSelected']['Genus']) && !empty($temp['FamiliesSelected']['Genus']) && !!empty($temp['SpeciesSelected']['Genus']) ? $temp['FamiliesSelected']['Genus'] :
             (!!empty($temp['VernNamesSelected']['Genus']) && !!empty($temp['FamiliesSelected']['Genus']) && !empty($temp['SpeciesSelected']['Genus']) ? $temp['SpeciesSelected']['Genus'] :
-            NULL)))))));
+            null)))))));
 
-        $output['Species'] = (!empty($temp['VernNamesSelected']['Species']) && !empty($temp['GenusSelected']['Species']) && !empty($temp['FamiliesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'],$temp['GenusSelected']['Species'],$temp['FamiliesSelected']['Species']) :
-            (!empty($temp['VernNamesSelected']['Species']) && !empty($temp['GenusSelected']['Species']) && !!empty($temp['FamiliesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'],$temp['GenusSelected']['Species']) :
-            (!empty($temp['VernNamesSelected']['Species']) && !!empty($temp['GenusSelected']['Species']) && !empty($temp['FamiliesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'],$temp['FamiliesSelected']['Species']) :
-            (!!empty($temp['VernNamesSelected']['Species']) && !empty($temp['GenusSelected']['Species']) && !empty($temp['FamiliesSelected']['Species']) ? array_intersect($temp['GenusSelected']['Species'],$temp['FamiliesSelected']['Species']) :
+        $output['Species'] = (!empty($temp['VernNamesSelected']['Species']) && !empty($temp['GenusSelected']['Species']) && !empty($temp['FamiliesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'], $temp['GenusSelected']['Species'], $temp['FamiliesSelected']['Species']) :
+            (!empty($temp['VernNamesSelected']['Species']) && !empty($temp['GenusSelected']['Species']) && !!empty($temp['FamiliesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'], $temp['GenusSelected']['Species']) :
+            (!empty($temp['VernNamesSelected']['Species']) && !!empty($temp['GenusSelected']['Species']) && !empty($temp['FamiliesSelected']['Species']) ? array_intersect($temp['VernNamesSelected']['Species'], $temp['FamiliesSelected']['Species']) :
+            (!!empty($temp['VernNamesSelected']['Species']) && !empty($temp['GenusSelected']['Species']) && !empty($temp['FamiliesSelected']['Species']) ? array_intersect($temp['GenusSelected']['Species'], $temp['FamiliesSelected']['Species']) :
             (!empty($temp['VernNamesSelected']['Species']) && !!empty($temp['GenusSelected']['Species']) && !!empty($temp['FamiliesSelected']['Species']) ? $temp['VernNamesSelected']['Species'] :
             (!!empty($temp['VernNamesSelected']['Species']) && !empty($temp['GenusSelected']['Species']) && !!empty($temp['FamiliesSelected']['Species']) ? $temp['GenusSelected']['Species'] :
             (!!empty($temp['VernNamesSelected']['Species']) && !!empty($temp['GenusSelected']['Species']) && !empty($temp['FamiliesSelected']['Species']) ? $temp['FamiliesSelected']['Species'] :
-            NULL)))))));
+            null)))))));
 
-            if(!empty($output['SubPlot'])){
-                foreach($output['SubPlot'] as $key2=>$value2){
-                    $output['SubPlot'][$key2] = array('id' => $value2 , 'text' => $value2);
-                }
-            } else {
-                $output['SubPlot'] = $this->cache->get('FSubPlot');
+        if (!empty($output['SubPlot'])) {
+            foreach ($output['SubPlot'] as $key2=>$value2) {
+                $output['SubPlot'][$key2] = array('id' => $value2 , 'text' => $value2);
             }
+        } else {
+            $output['SubPlot'] = $this->cache->get('FSubPlot');
+        }
 
-            if(!empty($output['CensusYear'])){
-                foreach($output['CensusYear'] as $key2=>$value2){
-                    $output['CensusYear'][$key2] = array('id' => $value2 , 'text' => $value2);
-                }
-            } else {
-                $output['CensusYear'] = $this->cache->get('FCensusYear');
+        if (!empty($output['CensusYear'])) {
+            foreach ($output['CensusYear'] as $key2=>$value2) {
+                $output['CensusYear'][$key2] = array('id' => $value2 , 'text' => $value2);
             }
+        } else {
+            $output['CensusYear'] = $this->cache->get('FCensusYear');
+        }
 
-            if(!empty($output['Plot'])){
-                foreach($output['Plot'] as $key2=>$value2){
-                    $output['Plot'][$key2] = array('id' => $value2 , 'text' => $value2);
-                }
-            } else {
-                $output['Plot'] = $this->cache->get('FPlot');
+        if (!empty($output['Plot'])) {
+            foreach ($output['Plot'] as $key2=>$value2) {
+                $output['Plot'][$key2] = array('id' => $value2 , 'text' => $value2);
             }
+        } else {
+            $output['Plot'] = $this->cache->get('FPlot');
+        }
 
-            if(!empty($output['VernName'])){
-                foreach($output['VernName'] as $key2=>$value2){
-                    $output['VernName'][$key2] = array('id' => $value2 , 'text' => $value2);
-                }
-            } else {
-                $output['VernName'] = $this->cache->get('FVernName');
+        if (!empty($output['VernName'])) {
+            foreach ($output['VernName'] as $key2=>$value2) {
+                $output['VernName'][$key2] = array('id' => $value2 , 'text' => $value2);
             }
+        } else {
+            $output['VernName'] = $this->cache->get('FVernName');
+        }
 
-            if(!empty($output['Family'])){
-                foreach($output['Family'] as $key2=>$value2){
-                    $output['Family'][$key2] = array('id' => $value2 , 'text' => $value2);
-                }
-            } else {
-                $output['Family'] = $this->cache->get('FFamily');
+        if (!empty($output['Family'])) {
+            foreach ($output['Family'] as $key2=>$value2) {
+                $output['Family'][$key2] = array('id' => $value2 , 'text' => $value2);
             }
-            if(!empty($output['Genus'])){
-                foreach($output['Genus'] as $key2=>$value2){
-                    $output['Genus'][$key2] = array('id' => $value2 , 'text' => $value2);
-                }
-            } else {
-                $output['Genus'] = $this->cache->get('FGenus');
+        } else {
+            $output['Family'] = $this->cache->get('FFamily');
+        }
+        if (!empty($output['Genus'])) {
+            foreach ($output['Genus'] as $key2=>$value2) {
+                $output['Genus'][$key2] = array('id' => $value2 , 'text' => $value2);
             }
-            if(!empty($output['Species'])){
-                foreach($output['Species'] as $key2=>$value2){
-                    $output['Species'][$key2] = array('id' => $value2 , 'text' => $value2);
-                }
-            } else {
-                $output['Species'] = $this->cache->get('FSpecies');
+        } else {
+            $output['Genus'] = $this->cache->get('FGenus');
+        }
+        if (!empty($output['Species'])) {
+            foreach ($output['Species'] as $key2=>$value2) {
+                $output['Species'][$key2] = array('id' => $value2 , 'text' => $value2);
             }
-            echo json_encode($output);
+        } else {
+            $output['Species'] = $this->cache->get('FSpecies');
+        }
+        echo json_encode($output);
     }
 
-    public function saveFilterState(){
+    public function saveFilterState()
+    {
         $this->_checkLogin();
         $data['name'] = $this->input->post('name');
         $data['state'] = $this->input->post('state');
@@ -329,7 +334,7 @@ class Main extends CI_Controller {
             'csrfHash' => $this->security->get_csrf_hash()
         );
 
-        if(!empty($data['name']) && !empty($data['state']) && !empty($data['user_id'])) {
+        if (!empty($data['name']) && !empty($data['state']) && !empty($data['user_id'])) {
             $id_filter_state = $this->filter_state_model->insertFilterState($data);
             $reponse['state_list'] = $this->filter_state_model->getFilterStatesByUser($user_id);
             echo json_encode($reponse);
@@ -339,13 +344,15 @@ class Main extends CI_Controller {
         }
     }
 
-    public function getFilterStates(){
+    public function getFilterStates()
+    {
         $user_id = $this->session->userdata['id'];
         $arrayFilterStates = $this->filter_state_model->getFilterStatesByUser($user_id);
         echo json_encode($arrayFilterStates);
     }
 
-    protected function _islocal(){
+    protected function _islocal()
+    {
         return strpos($_SERVER['HTTP_HOST'], 'local');
     }
 
@@ -356,7 +363,7 @@ class Main extends CI_Controller {
 
         $user_info = $this->user_model->isTokenValid($cleanToken); //either false or array();
 
-        if(!$user_info){
+        if (!$user_info) {
             $this->session->set_flashdata('flash_message', 'Token is invalid or expired');
             redirect(base_url().'main/login');
         }
@@ -370,14 +377,13 @@ class Main extends CI_Controller {
         $this->form_validation->set_rules('password', 'Password', 'required|min_length[5]');
         $this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');
 
-        if ($this->form_validation->run() == FALSE) {
+        if ($this->form_validation->run() == false) {
             $this->load->view('header', $this->header);
             $this->load->view('complete', $data);
             $this->load->view('footer');
-        }else{
-
+        } else {
             $this->load->library('password');
-            $post = $this->input->post(NULL, TRUE);
+            $post = $this->input->post(null, true);
 
             $cleanPost = $this->security->xss_clean($post);
 
@@ -386,18 +392,17 @@ class Main extends CI_Controller {
             unset($cleanPost['passconf']);
             $userInfo = $this->user_model->updateUserInfo($cleanPost);
 
-            if(!$userInfo){
+            if (!$userInfo) {
                 $this->session->set_flashdata('flash_message', "There was a problem updating your record");
                 redirect(base_url().'main/login');
             }
 
             unset($userInfo->password);
 
-            foreach($userInfo as $key=>$val){
+            foreach ($userInfo as $key=>$val) {
                 $this->session->set_userdata($key, $val);
             }
             redirect(base_url().'main/?Plot[]=6');
-
         }
     }
 
@@ -406,25 +411,24 @@ class Main extends CI_Controller {
         $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
         $this->form_validation->set_rules('password', 'Password', 'required');
 
-        if($this->form_validation->run() == FALSE) {
+        if ($this->form_validation->run() == false) {
             $this->load->view('header', $this->header);
             $this->load->view('login');
             $this->load->view('footer');
         } else {
-
             $post = $this->input->post();
             $clean = $this->security->xss_clean($post);
 
             $userInfo = $this->user_model->checkLogin($clean);
 
-            if(!$userInfo){
+            if (!$userInfo) {
                 redirect(base_url().'main/login');
             }
             foreach ($userInfo as $key => $val) {
                 $this->session->set_userdata($key, $val);
             }
             
-            if($this->session->userdata('page_url')){
+            if ($this->session->userdata('page_url')) {
                 redirect($this->session->userdata('page_url'));
             } else {
                 redirect(base_url().'main/?Plot[]=6');
@@ -444,14 +448,13 @@ class Main extends CI_Controller {
         $this->form_validation->set_rules('description_data', 'description', 'required|min_length[15]|max_length[1024]');
         $this->form_validation->set_rules('timeline', 'Timeline', 'required|valid_date|max_length[255]');
 
-        if($this->form_validation->run() == FALSE) {
-
+        if ($this->form_validation->run() == false) {
             $fields = array(
                 "CensusYear",
                 "Plot"
             );
 
-            $paracouDB = $this->load->database('paracou', TRUE); // Use paracou database
+            $paracouDB = $this->load->database('paracou', true); // Use paracou database
 
             /* Get columns name */
             $data["columns_name"] = $paracouDB->query("SELECT *
@@ -464,15 +467,14 @@ class Main extends CI_Controller {
             }
 
             $this->load->view('header', $this->header);
-            $this->load->view('request',$data);
+            $this->load->view('request', $data);
             $this->load->view('footer');
         } else {
-
             $post = $this->input->post();
             $clean = $this->security->xss_clean($post);
             $requestId = $this->request_model->insertRequest($clean);
 
-            if(!$requestId){
+            if (!$requestId) {
                 $this->session->set_flashdata('flash_message', 'A problem appeared in your request');
                 redirect(base_url().'main/login');
             } else {
@@ -490,10 +492,10 @@ class Main extends CI_Controller {
                 $this->load->view('footer');
             }
         }
-
     }
 
-    private function _requestMail($requestInfo){
+    private function _requestMail($requestInfo)
+    {
         $message = 'Hello,<br>';
         $message .= 'Your request has been taken you will be recontacted soon<br>';
 
@@ -512,7 +514,7 @@ class Main extends CI_Controller {
 
         $this->email->clear();
 
-        if(!$r){
+        if (!$r) {
             log_message('error', $this->email->print_debugger());
         }
 
@@ -532,7 +534,7 @@ class Main extends CI_Controller {
             $r_admin = $this->email->send();
             $this->email->clear();
             
-            if(!$r_admin){
+            if (!$r_admin) {
                 log_message('error', $this->email->print_debugger());
             }
         }
@@ -546,24 +548,23 @@ class Main extends CI_Controller {
 
     public function forgot()
     {
-
         $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
 
-        if($this->form_validation->run() == FALSE) {
+        if ($this->form_validation->run() == false) {
             $this->load->view('header', $this->header);
             $this->load->view('forgot');
             $this->load->view('footer');
-        }else{
+        } else {
             $email = $this->input->post('email');
             $clean = $this->security->xss_clean($email);
             $userInfo = $this->user_model->getUserInfoByEmail($clean);
 
-            if(!$userInfo){
+            if (!$userInfo) {
                 $this->session->set_flashdata('flash_message', 'We cant find your email address');
                 redirect(base_url('main/login'));
             }
 
-            if($userInfo->status != $this->status[1]){ //if status is not approved
+            if ($userInfo->status != $this->status[1]) { //if status is not approved
                 $this->session->set_flashdata('flash_message', 'Your account is not in approved status');
                 redirect(base_url('main/login'));
             }
@@ -591,7 +592,7 @@ class Main extends CI_Controller {
             $this->email->message($message);
             
             $r = $this->email->send();
-            if(!$r){
+            if (!$r) {
                 log_message('error', $this->email->print_debugger());
             }
 
@@ -606,7 +607,6 @@ class Main extends CI_Controller {
         </div>';
             $this->load->view('footer');
         }
-
     }
 
     public function reset_password()
@@ -616,7 +616,7 @@ class Main extends CI_Controller {
 
         $user_info = $this->user_model->isTokenValid($cleanToken); //either false or array();
 
-        if(!$user_info){
+        if (!$user_info) {
             $this->session->set_flashdata('flash_message', 'Token is invalid or expired');
             redirect(base_url('main/login'));
         }
@@ -630,14 +630,13 @@ class Main extends CI_Controller {
         $this->form_validation->set_rules('password', 'Password', 'required|min_length[5]');
         $this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');
 
-        if ($this->form_validation->run() == FALSE) {
+        if ($this->form_validation->run() == false) {
             $this->load->view('header', $this->header);
             $this->load->view('reset_password', $data);
             $this->load->view('footer');
-        }else{
-
+        } else {
             $this->load->library('password');
-            $post = $this->input->post(NULL, TRUE);
+            $post = $this->input->post(null, true);
 
             $cleanPost = $this->security->xss_clean($post);
 
@@ -645,20 +644,22 @@ class Main extends CI_Controller {
             $cleanPost['password'] = $hashed;
             $cleanPost['user_id'] = $user_info->id;
             unset($cleanPost['passconf']);
-            if(!$this->user_model->updatePassword($cleanPost)){
+            if (!$this->user_model->updatePassword($cleanPost)) {
                 $this->session->set_flashdata('flash_message', "There was a problem updating your password $test");
-            }else{
+            } else {
                 $this->session->set_flashdata('flash_message', 'Your password has been updated. You may now login');
             }
             redirect(base_url().'main/login');
         }
     }
 
-    private function base64url_encode($data) {
-      return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    private function base64url_encode($data)
+    {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 
-    private function base64url_decode($data) {
-      return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
+    private function base64url_decode($data)
+    {
+        return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
     }
 }

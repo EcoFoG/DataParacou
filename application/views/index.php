@@ -155,8 +155,8 @@ $(document).ready(function() {
         }
 
         var <?php foreach ($reducedFilters as $key => $value) {
-            echo "$key, ";
-        }?>page, offset; // Variables globales des filtres du document
+                echo "$key, ";
+            }?>page, offset; // Variables globales des filtres du document
 
         /* Enregistre les filtres selectionnés dans des variables */
         function getFilters(){
@@ -205,8 +205,8 @@ $(document).ready(function() {
                 url: "<?php echo base_url() ?>main/api_table", // Appelle la page fonction api_table dans application/controller/main.php
                 datatype: "json",
                 data: {<?php foreach ($reducedFilters as $key => $value) {
-                    echo "$key : $key, ";
-                }?>circMin : circMin, circMax : circMax, page : page, offset : offset, apply : "apply"} // Passe les paramètres via la méthode get
+            echo "$key : $key, ";
+        }?>circMin : circMin, circMax : circMax, page : page, offset : offset, apply : "apply"} // Passe les paramètres via la méthode get
             }).done(function(data){ // Evènement données reçues
                 data = JSON.parse(data); // Transforme JSON -> Array javascript
                 $('#page-selection').html(data.pagination_links);
