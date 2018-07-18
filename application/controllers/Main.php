@@ -14,6 +14,7 @@ class Main extends CI_Controller {
         $this->load->model('User_model', 'user_model', TRUE);
         $this->load->model('Request_model', 'request_model', TRUE);
         $this->load->model('Data_model', 'data_model', TRUE);
+        $this->load->model('Filter_state_model', 'filter_state_model', TRUE);
         // Appelle les items "roles" et "status" du fichier application/config/config.php
         $this->status = $this->config->item('status');
         $this->roles = $this->config->item('roles');
@@ -316,10 +317,37 @@ class Main extends CI_Controller {
             }
             echo json_encode($output);
     }
+
+    public function saveFilterState(){
+        $this->_checkLogin();
+        $data['name'] = $this->input->post('name');
+        $data['state'] = $this->input->post('state');
+        $user_id = $data['user_id'] = $this->session->userdata['id'];
+
+        $reponse = array(
+            'csrfName' => $this->security->get_csrf_token_name(),
+            'csrfHash' => $this->security->get_csrf_hash()
+        );
+
+        if(!empty($data['name']) && !empty($data['state']) && !empty($data['user_id'])) {
+            $id_filter_state = $this->filter_state_model->insertFilterState($data);
+            $reponse['state_list'] = $this->filter_state_model->getFilterStatesByUser($user_id);
+            echo json_encode($reponse);
+        } else {
+            $reponse["err"] = "null value in POST saveFilterState()";
+            echo json_encode($reponse);
+        }
+    }
+
+    public function getFilterStates(){
+        $user_id = $this->session->userdata['id'];
+        $arrayFilterStates = $this->filter_state_model->getFilterStatesByUser($user_id);
+        echo json_encode($arrayFilterStates);
+    }
+
     protected function _islocal(){
         return strpos($_SERVER['HTTP_HOST'], 'local');
     }
-
 
     public function complete()
     {
@@ -382,7 +410,7 @@ class Main extends CI_Controller {
             $this->load->view('header', $this->header);
             $this->load->view('login');
             $this->load->view('footer');
-        }else{
+        } else {
 
             $post = $this->input->post();
             $clean = $this->security->xss_clean($post);
@@ -396,9 +424,12 @@ class Main extends CI_Controller {
                 $this->session->set_userdata($key, $val);
             }
             
-            redirect(base_url().'main/?Plot[]=6');
+            if($this->session->userdata('page_url')){
+                redirect($this->session->userdata('page_url'));
+            } else {
+                redirect(base_url().'main/?Plot[]=6');
+            }
         }
-
     }
 
     public function request()
@@ -435,7 +466,7 @@ class Main extends CI_Controller {
             $this->load->view('header', $this->header);
             $this->load->view('request',$data);
             $this->load->view('footer');
-        }else{
+        } else {
 
             $post = $this->input->post();
             $clean = $this->security->xss_clean($post);
@@ -506,7 +537,6 @@ class Main extends CI_Controller {
             }
         }
     }
-
 
     public function logout()
     {

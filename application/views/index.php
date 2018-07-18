@@ -94,11 +94,21 @@ $(document).ready(function() {
                           });
                       };
                   });
-              });
+            });
 
         $('#datatable').after("<div class=\"loader mx-auto my-4\" />"); // Affiche l'animation loader
 
+        getFilterStates(function(filterStates){
+            reloadFilterStatesList(filterStates);
+        });
+        
         var xhr; // Déclaration de l'objet ajax pour l'utilisation d'abort en cas d'appui sur apply alors que le tableau n'est pas chargé
+
+        $('#filterStates').change(function(){
+            let base_url = "<?php echo base_url() ?>";
+            let selectedFilterState = $("#filterStates option:selected").val();
+            window.location.href = base_url + "main/?" + selectedFilterState;
+        });
 
         /* Crée les input de selection multiple (Select2 : https://select2.org/) */
         $('.multiple').select2({
@@ -168,9 +178,8 @@ $(document).ready(function() {
         }
         ?>
 
-        /* Evènement clic sur save */
         $("#save").click(function(){
-            alert("<?php echo base_url() ?>main/?" + decodeURIComponent( $("#formFilters").serialize())); // Génère l'URL correspondant aux filtres séléctionnés
+            saveFilterState();
         });
         /* Evènemenent clic sur apply */
         $("#apply").click(function(){
@@ -182,7 +191,7 @@ $(document).ready(function() {
             xhr.abort(); // Abandonne la requête ajax en cours
             load_data(page);
         });
-
+        
         getFilters();
         xhr = load_data(1);
 
@@ -207,6 +216,51 @@ $(document).ready(function() {
             return xhr;
         }
 
+
+        /* Save filter state */
+        var csrfName = '<?php echo $this->security->get_csrf_token_name(); ?>',
+            csrfHash = '<?php echo $this->security->get_csrf_hash(); ?>';
+
+        function saveFilterState() {
+            let txt;
+            let name = prompt("Please enter the name of your filter configuration : ");
+            if (!(name == null || name == "")) {
+                let state = decodeURIComponent( $("#formFilters").serialize())
+                $.ajax({
+                    url : "<?php echo base_url()?>main/saveFilterState",
+                    dataType : "json",
+                    type : "POST",
+                    data : { token : csrfHash, name : name, state : state}
+                }).done(function(data){ // Evènement données reçues
+                    csrfName = data.csrfName;
+                    csrfHash = data.csrfHash;
+                    getFilterStates(function(filterStates){
+                        reloadFilterStatesList(filterStates);
+                    });
+                });
+            }
+        }
+
+        function getFilterStates(callback) {
+            $.ajax({
+                    url : "<?php echo base_url()?>main/getFilterStates",
+                    dataType : "json",
+                    type : "GET"
+                }).done(function(data){ // Evènement données reçues
+                    callback(data);
+                });
+        }
+
+        function reloadFilterStatesList(filterStates) {
+            selectFilterStates = document.getElementById('filterStates');
+            
+            selectFilterStates.options.length = 1;
+
+            for (let i = 0; i < filterStates.length; i++) {
+                selectFilterStates.options.add(new Option(filterStates[i].name, filterStates[i].state));
+            }
+        }
+
     });
 </script>
 <!-- NAVIGATION -->
@@ -228,14 +282,18 @@ $(document).ready(function() {
         <!-- Vous pouvez rajouter des liens ici / doc : https://www.w3schools.com/tags/att_a_href.asp -->
 
     </ul>
-    <form class="navbar-text form-inline">
+    <div class="navbar-text form-inline">
+        <button class="btn" id="save">Save filters</button>
+        <select id="filterStates" class="form-control">
+            <option value="">--- Your filters list ---</option>
+        </select>
         <?php
         if ($role == "admin") { // Si le role de l'utilisateur est "admin" afficher le lien "Admin" dans la nav
             $url_admin = base_url().'admin/';
             echo "<a class=\"m-3\" href='$url_admin'>Admin</a>";
         } ?>
         <a class="m-2" href="<?php echo base_url().'main/logout/' ?>">Logout</a>
-    </form>
+    </div>
   </div>
 </nav>
 <br>
@@ -296,7 +354,6 @@ $(document).ready(function() {
                         </div>
                         </form>
                         <button class="m-2 mx-auto btn" id="apply">Apply</button>
-                        <button class="m-2 mx-auto btn" id="save">Save state</button>
                     </div>
             </div>
     </div>

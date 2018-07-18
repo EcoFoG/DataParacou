@@ -25,6 +25,7 @@ class Admin extends CI_Controller {
 
     private function checkRights(){
         if(empty($this->session->userdata['email'])){
+            $this->session->set_userdata('page_url',  current_url());
             redirect(base_url().'main/login/');
         }
         if ($this->session->userdata('role') != 'admin'){
@@ -96,8 +97,8 @@ class Admin extends CI_Controller {
                     $link = '<a href="' . $url . '">' . $url . '</a>';
 
                     $message = '';
-                    $message .= "<strong>You have been invited to Paracou-Ex</strong><br>";
-                    $message .= '<strong>Please click:</strong> ' . $link;
+                    $message .= "Invitation link to Paracou Data<br>";
+                    $message .= 'Please click: ' . $link;
 
                     $this->load->config('email');
                     $email_config = $this->config->item('email');
@@ -245,7 +246,19 @@ class Admin extends CI_Controller {
         $requestinfo = $this->request_model->getRequestInfo($id);
         $user_duplicated = $this->user_model->isDuplicate($requestinfo->email);
         if (($requestinfo) && !isset($requestinfo->accepted)) {
-            $message = "$requestinfo->firstname $requestinfo->lastname,<br> Your request has been accepted.<br> You will receive another mail with an invitation link <br> $requestinfo->specific_conditions";
+            $message = "Dear $requestInfo->name_principal_investigator,<br>Your account on Paracou Data has been created.<br>You will receive another mail with an invitation link.<br>
+            You may now visualize and extract the data you need for your scientific project.<br>
+            We remind you that these data are solely usable for the study for which you have requested access. Please do not communicate these data to anyone for any other use. For any other scientific study, please make a new data request on our website https://paracoudata.cirad.fr/main/login/.<br>
+            If your work on these data leads to a public communication (scientific paper, communication, report…), please cite the source as 'Paracou Research Station, a large scale forest disturbance experiment in Amazonia from 1982, Cirad, https://paracou.cirad.fr/'<br>
+            You can find the metadata here and geographic data here.<br>
+
+            Specific Conditions : <br>
+            
+            $requestinfo->specific_conditions
+
+            The Paracou team <br>
+            https://paracou.cirad.fr";
+
             $this->_sendApproveMail($requestinfo, $message);
             if($user_duplicated){
                 redirect(base_url()."admin/edit_user/user-$user_duplicated->id/request-$id");

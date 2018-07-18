@@ -8,28 +8,42 @@
             <?php
             foreach($requestinfo as $key=>$value){
                 echo '<div class="form-group">';
-                    echo form_label(humanize($key),"$key");
                     switch($key) {
                         case "address":
-                            echo form_textarea(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => set_value("$key",$value), 'disabled' => TRUE));
+                            echo form_label(humanize($key),"$key");
+                            echo form_textarea(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => $value, 'disabled' => TRUE));
                             break;
                         case "summary_research":
-                            echo form_textarea(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => set_value("$key",$value), 'disabled' => TRUE));
+                            echo form_label(humanize($key),"$key");
+                            echo form_textarea(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => $value , 'disabled' => TRUE));
                             break;
                         case "description_data":
-                            echo form_textarea(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => set_value("$key",$value), 'disabled' => TRUE));
-                            break;
-                        case "accepted":
-                            echo form_textarea(array('name'=>"$key", 'id'=> "$key",'placeholder'=>'Not accepted yet', 'class'=>'form-control', 'value' => set_value("$key",$value), 'disabled' => TRUE));
+                            echo form_label(humanize($key),"$key");
+                            echo form_textarea(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => $value , 'disabled' => TRUE));
                             break;
                         case "specific_conditions":
-                            echo form_textarea(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => set_value("$key",$value)));
+                            echo form_label(humanize($key),"$key");
+                            echo form_textarea(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => $value ));
                             break;
                         case "valorisation":
-                            echo form_input(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => set_value("$key",$value)));
+                            echo form_label(humanize($key),"$key");
+                            echo form_input(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => $value ));
+                            break;
+                        case "years":
+                            break;
+                        case "plots":
+                            break;
+                        case "columns":
+                            break;
+                        case "accepted_by":
+                            break;
+                        case "accepted":
+                            break;
+                        case "id":
                             break;
                         default:
-                            echo form_input(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => set_value("$key",$value), 'disabled' => TRUE));
+                            echo form_label(humanize($key),"$key");
+                            echo form_input(array('name'=>"$key", 'id'=> "$key", 'placeholder'=>humanize($key), 'class'=>'form-control', 'value' => $value , 'disabled' => TRUE));
                             break;
                     }
                     echo form_error($key);

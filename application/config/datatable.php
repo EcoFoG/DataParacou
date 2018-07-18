@@ -21,7 +21,7 @@ $config['columns'] = array(
     'CodeMeas',
     'CensusYear',
     'CensusDate',
-    'DateMesFiable',
+    'CensusDateCertainty',
     'Family',
     'Genus',
     'Species',
