@@ -43,8 +43,8 @@ on peut changer de page pour voir l'intégralité des données.
 En cliquant sur "Export to CSV", on peut exporter les données en format CSV, le fichier sera nommé "ParacouDDMMYYYY.csv" correspondant à la date de l'exportation.
 
 ### Sauvegarder l'état des filtres
-
-En cliquant sur "Save state" on obtient un lien qui garde en mémoire l'état des filtres dans le cas où on a besoin de récupérer les mêmes données
+![Capture d'écran affichage](documentation/img/save_filter.png)
+En cliquant sur "Save filter", on enregistre un filtre dans le menu déroulant du menu de navigation, qui permettra de sauvegarde les requêtes complexes
 
 ## Gestion des utilisateurs
 
