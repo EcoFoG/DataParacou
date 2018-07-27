@@ -358,6 +358,7 @@ Il faudra ensuite modifier les vues contenant les liens redirigeant vers cet URL
   `<a class="m-2 btn btn-primary" href="<?php echo base_url()."admin/add_user/"; //Modifier en admin/add/ ?>">Add user  <i class="fas fa-plus-circle"></i></a>`
   
   **...**
+
   
 ## Tester l'application en local
 
@@ -501,3 +502,172 @@ Flow chart CodeIgniter
 - application/view/admin
     - Dossier contenant les vues appelées par le controleur Admin.php
     - Le header et le footer sont toujours appelés respectivement au début et à la fin de chaque page, ils contiennent les librairies javascript intégrés à la page
+
+## Modifier les champs de requête
+
+*Pré-requis :*
+- Architecture MVC
+- CodeIgniter Form Helper ([Documentation](https://www.codeigniter.com/userguide3/helpers/form_helper.html))
+- CodeIgniter Model([Documentation](https://www.codeigniter.com/userguide3/general/models.html)) 
+- Bootstrap Form ([Documentation](https://getbootstrap.com/docs/4.0/components/forms/)) 
+
+### Modifier la vue
+
+application/views/request.php est la page qui s'occupe de créer les formulaires et de les afficher à l'écran
+
+La fonction form_input générera un formulaire simple, alors que la fonction form_textarea générera un formulaire agrandi servant à écrire des textes longs, comme des adresse ou des paragraphes
+
+Voir la documentation [form_helper](https://www.codeigniter.com/userguide3/helpers/form_helper.html) de codeigniter 
+
+```php
+<div class="form-group">
+    <?php echo form_label('E-mail');?>
+    <?php echo form_input(array(
+        'name'=>'email',
+        'id'=> 'email',
+        'class'=>'form-control',
+        'value'=> set_value('email'))); ?>
+    <?php echo form_error('email') ?>
+</div>
+/* Champ affiliation */
+<div class="form-group"> // Conteneur de classe form-group (voir documentation bootstrap)
+    <?php echo form_label('Affiliation');?> // Etiquette du champ, "Affiliation" sera affiché à l'écran
+    <?php echo form_input(array( // form_input pour champ de texte simple
+        'name'=>'affiliation', // Nom du champ à envoyer dans la base
+        'id'=> 'affiliation', // ID du champ pour l'identification HTML
+        'class'=>'form-control', // Classe bootstrap du champ en lui même
+        'value'=> set_value('affiliation'))); ?> // set_value est une fonction qui sert à garder les données rentrées même en cas de rafraichissement du formulaire
+    <?php echo form_error('affiliation') ?> // Affiche l'erreur si les données rentrées n'ont pas respecté la validation
+</div>
+/* Champ affiliation */
+<div class="form-group">
+    <?php echo form_label('Full address');?>
+    <?php echo form_textarea(array(
+        'name'=>'address',
+        'id'=> 'address',
+        'class'=>'form-control',
+...
+```
+
+### Modifier le modèle
+
+application/models/Request_model.php
+
+La fonction insertRequest prend un tableau en entrée et l'insère dans la base de données.
+
+```php
+public function insertRequest($d)
+    {
+        $columns = !empty($d['columns[]']) ? implode(',', $d['columns[]']) : null;
+        $years = !empty($d['years[]']) ? implode(',', $d['years[]']) : null;
+        $plots = !empty($d['plots[]']) ? implode(',', $d['plots[]']) : null;
+
+        $string = array(
+            'email'=>$d['email'],
+            'affiliation'=>$d['affiliation'],
+            'address'=>$d['address'],
+            'firstname'=>$d['firstname'],
+            'lastname'=>$d['lastname'],
+            'title_research'=>$d['title_research'],
+            'summary_research'=>$d['summary_research'],
+            'description_data'=>$d['description_data'],
+            'columns'=>$columns,
+            'years'=>$years,
+            'plots'=>$plots,
+            'timeline'=>$d['timeline'],
+            'requested'=>date("Y/m/d")
+            /* Ajouter une ligne ici */
+        );
+        $q = $this->db->insert_string('requests', $string);
+        $this->db->query($q);
+        return $this->db->insert_id();
+    }
+```
+
+### Modifier la base de données
+
+Il faut ajouter/supprimer/modifier les colonnes qui correspondent au nom des champs ajoutés dans le code.
+
+### Exemple
+
+Je veux ajouter un champ "âge" au formulaire :
+
+Je modifie la vue : 
+
+```php
+<div class="form-group">
+<?php echo form_label('Description of the required data');?>
+<?php echo form_textarea(array(
+    'name'=>'description_data',
+    'id'=> 'description_data',
+    'class'=>'form-control',
+    'value'=> set_value('description_data'))); ?>
+<?php echo form_error('description_data') ?>
+</div>
+<div class="form-group">
+<?php echo form_label('Desired access time');?>
+<?php echo form_input(array(
+    'name'=>'timeline',
+    'id'=> 'timeline',
+    'placeholder'=> 'Day of expiration',
+    'class'=>'form-control',
+    'value'=> set_value('timeline'))); ?>
+<?php echo form_error('timeline') ?>
+</div>
+<div class="form-group">
+<?php echo form_label('Age');?>
+/* Nouveau champ age */
+<?php echo form_input(array(
+    'name'=>'age',
+    'id'=> 'age',
+    'placeholder'=> 'Age',
+    'class'=>'form-control',
+    'value'=> set_value('age'))); ?>
+<?php echo form_error('age') ?>
+</div>
+/* Fin nouveau champ age */
+<?php echo form_submit(array('value'=>'Request', 'class'=>'btn btn-lg btn-primary btn-block')); ?>
+<?php echo form_close(); ?>
+```
+Je modifie le modèle : 
+
+```php
+public function insertRequest($d)
+    {
+        $columns = !empty($d['columns[]']) ? implode(',', $d['columns[]']) : null;
+        $years = !empty($d['years[]']) ? implode(',', $d['years[]']) : null;
+        $plots = !empty($d['plots[]']) ? implode(',', $d['plots[]']) : null;
+
+        $string = array(
+            'email'=>$d['email'],
+            'affiliation'=>$d['affiliation'],
+            'address'=>$d['address'],
+            'firstname'=>$d['firstname'],
+            'lastname'=>$d['lastname'],
+            'title_research'=>$d['title_research'],
+            'summary_research'=>$d['summary_research'],
+            'description_data'=>$d['description_data'],
+            'columns'=>$columns,
+            'years'=>$years,
+            'plots'=>$plots,
+            'timeline'=>$d['timeline'],
+            'requested'=>date("Y/m/d")
+            'age' => $d['age']
+        );
+        $q = $this->db->insert_string('requests', $string);
+        $this->db->query($q);
+        return $this->db->insert_id();
+    }
+```
+
+Je modifie la base de données : 
+
+Je me connecte grace à PUTTY via SSH sur le serveur CIRAD (voir MDP.7z pour les mots de passes)
+```
+[root@gannat ~]# mysql -u root -p
+MariaDB [(none)]> USE users
+MariaDB [users]> ALTER TABLE requests ADD COLUMN age INT(15) AFTER name;
+```
+
+
+
